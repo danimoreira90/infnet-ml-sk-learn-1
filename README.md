@@ -281,9 +281,9 @@ create_results_dataframe(results_dict)
 
 ## 👤 Author
 
-[Your Name]  
-[Course/Program]  
-[Date]
+Daniel Moreira
+Infnet - Scikit-Learn and ML models  
+03/03/2026
 
 ## 📄 License
 
