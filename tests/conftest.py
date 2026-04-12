@@ -61,7 +61,7 @@ def minimal_df() -> pd.DataFrame:
             "EDUCATION": rng.integers(1, 5, n),
             "MARRIAGE": rng.integers(1, 4, n),
             "AGE": rng.integers(21, 79, n),
-            **{f"PAY_{i}": rng.integers(-2, 9, n) for i in range(6)},
+            **{f"PAY_{i}": rng.integers(-2, 9, n) for i in [0, 2, 3, 4, 5, 6]},
             **{f"BILL_AMT{i}": rng.integers(0, 100_000, n) for i in range(1, 7)},
             **{f"PAY_AMT{i}": rng.integers(0, 50_000, n) for i in range(1, 7)},
             "default payment next month": target,
