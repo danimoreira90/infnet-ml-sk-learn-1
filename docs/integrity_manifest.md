@@ -94,8 +94,21 @@ A função `diagnostics.check_leakage_risk()` **não corrige** o risco que docum
 
 ## Duplicatas no Dataset Bruto
 
-O arquivo `.xls` bruto contém **35 linhas exatamente duplicadas** (não documentadas na especificação UCI).
+**Causa confirmada por inspeção:** as 35 duplicatas são **aparentes, não estruturais**.
 
-**Tratamento:** `build_clean_dataset.py` remove as duplicatas explicitamente antes da validação, com mensagem de log visível (`AVISO: 35 linha(s) exatamente duplicada(s) removida(s) (30000 -> 29965 linhas)`). O parquet limpo tem **29965 linhas**.
+Verificação executada:
+
+```python
+import pandas as pd
+df = pd.read_excel('../data/default of credit card clients.xls', header=1)
+print('com ID:', df.duplicated().sum())   # → 0
+print('sem ID:', df.drop(columns=['ID']).duplicated().sum())  # → 35
+```
+
+Com o campo `ID` presente nenhuma linha é duplicata (`0` duplicatas). Ao dropar `ID`, 35 pares de clientes **distintos** (IDs diferentes) compartilham exatamente os mesmos valores nas outras 23 features — colisão de features, não corrupção de dados.
+
+**Impacto em modelagem:** 35 de 30000 = 0,12% das linhas. Desprezível em magnitude, mas documentado para rastreabilidade completa.
+
+**Tratamento:** `build_clean_dataset.py` remove as 35 linhas redundantes pós-drop-ID com log visível (`AVISO: 35 linha(s) exatamente duplicada(s) removida(s) (30000 -> 29965 linhas)`). O parquet limpo tem **29965 linhas**.
 
 Este fato está registrado aqui e no log de execução do script. Nunca foi silenciado.

@@ -26,7 +26,9 @@ Princípios:
 | `load_cleaned(path)` | Carrega parquet limpo via pyarrow |
 | `load_config(config_path)` | Carrega `configs/data.yaml`; resolve relativo ao repo root se `None` |
 
-**Nota:** `load_raw()` encapsula `header=1` porque a linha 0 do arquivo Excel é um título descritivo e a linha 1 é o cabeçalho real das colunas.
+**Nota sobre `header=1`:** a linha 0 do arquivo Excel é um título descritivo e a linha 1 é o cabeçalho real das colunas.
+
+**Nota sobre duplicatas pós-drop-ID:** ao dropar a coluna `ID`, 35 pares de clientes com IDs distintos passam a ter exatamente os mesmos valores nas 23 features restantes (colisão de features, não corrupção). Com `ID` presente, `df.duplicated().sum() == 0`. Sem `ID`, `df.duplicated().sum() == 35`. As linhas redundantes são removidas em `build_clean_dataset.py` com log explícito. Impacto em modelagem: 35/30000 = 0,12% — desprezível em magnitude, documentado para rastreabilidade. Ver `docs/integrity_manifest.md` para a verificação completa.
 
 ---
 
