@@ -292,3 +292,52 @@ This project is for educational purposes.
 ---
 
 **Note:** This is an academic project demonstrating supervised learning methodology. It should not be used for actual credit decisions without proper validation, regulatory compliance, and fairness auditing.
+
+---
+
+## Como rodar a Parte 2 — Fundação de Dados
+
+### Pré-requisitos
+
+- **uv** (gestor de ambientes e pacotes Python)
+  Verificar: `uv --version`
+  Instalar: https://docs.astral.sh/uv/getting-started/installation/
+  Python 3.11 é gerenciado pelo uv: `uv python install 3.11`
+- Dataset bruto em `../data/default of credit card clients.xls` (relativo à raiz do repo)
+
+### Instalação
+
+```bash
+uv venv --python 3.11
+source .venv/Scripts/activate      # Git Bash (Windows)
+# ou: .venv\Scripts\Activate.ps1  # PowerShell (Windows)
+# ou: source .venv/bin/activate   # Linux/macOS
+uv pip install -e ".[dev]"
+```
+
+### Construir dataset limpo
+
+```bash
+python scripts/build_clean_dataset.py
+# Saída: data/credit_card_cleaned.parquet
+```
+
+### Executar QA completo de dados
+
+```bash
+python scripts/run_data_qa.py
+# Saídas: artifacts/, reports/figures/parte_2/
+```
+
+### Rodar testes
+
+```bash
+pytest -q
+```
+
+### Verificar estilo
+
+```bash
+ruff check src/ scripts/ tests/
+black --check src/ scripts/ tests/
+```
