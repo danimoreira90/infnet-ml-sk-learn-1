@@ -19,7 +19,7 @@ class DataValidationError(Exception):
 def validate(
     df: pd.DataFrame,
     *,
-    expected_rows: int = 30000,
+    expected_rows: int | None = 30000,
     expected_cols: int = 24,
     target_col: str = "default payment next month",
     education_valid_codes: list[int] | None = None,
@@ -28,7 +28,7 @@ def validate(
     """Valida estrutura e qualidade do DataFrame pós-ingestão.
 
     Erros FATAIS → levanta DataValidationError imediatamente:
-      - n_rows != expected_rows
+      - n_rows != expected_rows (pulado quando expected_rows=None)
       - n_cols != expected_cols
       - target_col ausente
       - qualquer NaN no DataFrame
@@ -50,7 +50,7 @@ def validate(
     warnings: list[str] = []
 
     # --- Erros fatais ---
-    if df.shape[0] != expected_rows:
+    if expected_rows is not None and df.shape[0] != expected_rows:
         raise DataValidationError(
             f"Número de linhas incorreto: esperado {expected_rows}, encontrado {df.shape[0]}"
         )
