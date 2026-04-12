@@ -1,0 +1,33 @@
+data:
+  raw_path: "../data/default of credit card clients.xls"  # relativo à raiz do repo
+  cleaned_path: "data/credit_card_cleaned.parquet"        # local, gitignored
+  target_column: "default payment next month"
+  id_column: "ID"
+  expected_sha256: "30c6be3abd8dcfd3e6096c828bad8c2f011238620f5369220bd60cfc82700933"
+  read_excel_header: 1   # row 0 é título; row 1 é o header real
+
+split:
+  seed: 42
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+qa:
+  expected_rows: 30000
+  expected_raw_cols: 25        # antes de dropar ID
+  expected_clean_cols: 24      # após dropar ID
+  minority_ratio_min: 0.20
+  minority_ratio_max: 0.25
+  education_valid_codes: [1, 2, 3, 4]   # UCI spec; {0,5,6} são anomalias documentadas
+  marriage_valid_codes: [1, 2, 3]       # UCI spec; {0} é anomalia documentada
+
+artifacts:
+  base_dir: "artifacts"
+  fingerprint_path: "artifacts/data_fingerprint.json"
+  schema_path: "artifacts/data_schema.json"
+  splits_dir: "artifacts/splits"
+  split_indices_path: "artifacts/splits/split_indices.json"
+  qa_summary_path: "artifacts/data_qa_summary.json"
+
+reports:
+  figures_dir: "reports/figures/parte_2"
