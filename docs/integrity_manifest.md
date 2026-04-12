@@ -4,6 +4,23 @@ Registro dos controles de integridade, anomalias documentadas e decisões de des
 
 ---
 
+## Política de Histórico Git
+
+**O histórico git não é reescrito após commits serem feitos. Fixes são commits atômicos.**
+
+Razão: cada commit — incluindo commits `fix(scope)` — representa um evento real de engenharia com causa identificável, sintoma e correção documentados. Reescrever o histórico (rebase interativo, amend em commits já existentes) apagaria rastreabilidade que este manifesto exige preservar.
+
+Convenção adotada: `fix(scope): descrição` é um tipo válido na spec de Conventional Commits e carrega o mesmo peso de auditoria que `feat` ou `docs`. A contagem de commits da Parte 2 é **15 (13 features/docs + 2 fixes atômicos)**:
+
+| Commit | Tipo | Causa do fix |
+|--------|------|-------------|
+| `61d929f` | `fix(repo)` | `build-backend = "setuptools.backends.legacy:build"` não existe em setuptools moderno |
+| `f9004cb` | `fix(repo)` | `.gitignore` sem âncora `/` bloqueava `src/credit_default/data/` |
+
+Ambos os fixes estão detalhados em `IMPLEMENTATION_REPORT.md`.
+
+---
+
 ## Controles de Integridade
 
 | Artefato | Script gerador | Verificação |
