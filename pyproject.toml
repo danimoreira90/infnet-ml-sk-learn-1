@@ -33,11 +33,14 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 99
-select = ["E", "F", "W", "I"]
 exclude = ["*.ipynb", "utils.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
 
 [tool.black]
 line-length = 99
+target-version = ["py311"]
 exclude = '(\.ipynb|utils\.py)'
 
 [tool.pytest.ini_options]
