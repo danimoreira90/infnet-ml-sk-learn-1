@@ -1,5 +1,6 @@
 """Modulo de rastreamento MLflow."""
 
+from credit_default.tracking.compare import consolidated_results_table
 from credit_default.tracking.mlflow_utils import (
     get_or_create_experiment,
     log_standard_artifacts,
@@ -14,4 +15,5 @@ __all__ = [
     "log_standard_tags",
     "log_standard_metrics",
     "log_standard_artifacts",
+    "consolidated_results_table",
 ]
