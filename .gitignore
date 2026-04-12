@@ -29,3 +29,7 @@ Thumbs.db
 # Artifacts de execução (gerados localmente, nunca versionados)
 artifacts/
 mlruns/
+
+# Figuras geradas em runtime (parte_2); .gitkeep permanece versionado
+reports/figures/parte_2/*.png
+!reports/figures/parte_2/.gitkeep
