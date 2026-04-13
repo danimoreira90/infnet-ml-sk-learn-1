@@ -112,3 +112,33 @@ Com o campo `ID` presente nenhuma linha é duplicata (`0` duplicatas). Ao dropar
 **Tratamento:** `build_clean_dataset.py` remove as 35 linhas redundantes pós-drop-ID com log visível (`AVISO: 35 linha(s) exatamente duplicada(s) removida(s) (30000 -> 29965 linhas)`). O parquet limpo tem **29965 linhas**.
 
 Este fato está registrado aqui e no log de execução do script. Nunca foi silenciado.
+
+---
+
+## Parte 3 — Controle: Parametros MLflow Verificados em Runtime
+
+**Controle introduzido:** `fix(tracking)` — commit 6ea3d3f
+
+**Problema detectado:** os 10 runs MLflow gerados na implementacao inicial (C11+C12) tinham `params/` vazia (`ParamsCount=0`). A funcao `log_standard_params()` nao existia em `mlflow_utils.py` e nao era chamada em `train.py`.
+
+**Correcao aplicada:**
+- `log_standard_params()` adicionada a `src/credit_default/tracking/mlflow_utils.py`: loga 8 params meta (model_name, seed, cv_folds, scoring_primary="roc_auc", split_strategy, search_type, n_train, n_val) + todos clf__* hiperparametros do estimador (escalares).
+- `train.py` extrai `clf_params` pos-treino (baseline: `pipeline.get_params()` filtrado; tuned: `search_obj.best_params_`) e chama `log_standard_params()` dentro do `start_run`.
+- 5 testes em `tests/test_mlflow_utils.py` verificam presenca dos params obrigatorios.
+
+**Verificacao pos-correcao (mlruns regenerado):**
+
+| Run | ParamsCount | clf__keys | scoring_primary |
+|-----|-------------|-----------|-----------------|
+| tune__rf | 12 | 4 | roc_auc |
+| tune__perceptron | 11 | 3 | roc_auc |
+| tune__logreg | 11 | 3 | roc_auc |
+| tune__gb | 12 | 4 | roc_auc |
+| tune__dtree | 11 | 3 | roc_auc |
+| baseline__rf | 27 | 19 | roc_auc |
+| baseline__perceptron | 28 | 20 | roc_auc |
+| baseline__logreg | 22 | 14 | roc_auc |
+| baseline__gb | 28 | 20 | roc_auc |
+| baseline__dtree | 21 | 13 | roc_auc |
+
+**Regra:** params loggeados sao verificados por script (`uv run python -c "..."`) e por suite de testes — nunca apenas por documentacao. O DoD exige `ParamsCount >= 8` e `clf__keys >= 3` por run.

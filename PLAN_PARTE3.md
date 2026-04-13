@@ -1485,6 +1485,7 @@ tune__gb__numstd_catoh__none__random__seed42__data30c6be3a__code1c9dc04
 - [ ] `uv run ruff check src/ scripts/ tests/` sem erros
 - [ ] `uv run black --check src/ scripts/ tests/` sem reformatacoes
 - [ ] Cada run MLflow tem: 10 tags, 11 metricas, 5+ artefatos (confusion_matrix.png, roc_curve.png, pr_curve.png, run_summary.json, split_fingerprint.txt)
+- [ ] Cada run tem pasta params/ nao-vazia com minimo 8 params (8 meta: model_name, seed, cv_folds, scoring_primary, split_strategy, search_type, n_train, n_val + >= 3 clf__ hiperparametros do classificador)
 - [ ] run_summary.json de cada run contem "primary_metric": "roc_auc"
 - [ ] split_fingerprint.txt em cada run confirma fingerprint_short = "30c6be3a"
 - [ ] `git diff 516306a -- "*.ipynb" utils.py` retorna vazio (notebooks intocados)
