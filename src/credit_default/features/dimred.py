@@ -1,4 +1,5 @@
 """Reducao de dimensionalidade: PCA e LDA integrados ao pipeline sklearn."""
+
 from __future__ import annotations
 
 import copy
@@ -70,9 +71,7 @@ def build_dimred_pipeline(
     elif dimred_method == "lda":
         dimred_step = LinearDiscriminantAnalysis(n_components=n_components)
     else:
-        raise ValueError(
-            f"dimred_method deve ser 'pca' ou 'lda', recebido: {dimred_method!r}"
-        )
+        raise ValueError(f"dimred_method deve ser 'pca' ou 'lda', recebido: {dimred_method!r}")
 
     return Pipeline(
         steps=[

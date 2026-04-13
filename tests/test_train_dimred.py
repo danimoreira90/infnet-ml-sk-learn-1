@@ -1,4 +1,5 @@
 """Testes de integracao para train_dimred_and_evaluate."""
+
 from __future__ import annotations
 
 import uuid
@@ -7,7 +8,6 @@ import mlflow
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 from credit_default.features.preprocessing import CATEGORICAL, NUMERIC_CONTINUOUS, NUMERIC_ORDINAL
@@ -18,8 +18,10 @@ from credit_default.models.train import train_dimred_and_evaluate
 
 @pytest.fixture(autouse=True)
 def isolated_mlflow(tmp_path):
-    """Garante tracking URI isolado por teste."""
-    mlflow.set_tracking_uri(tmp_path.as_uri())
+    """Garante tracking URI isolado por teste (subdiretorio mlruns)."""
+    mlruns_dir = tmp_path / "mlruns"
+    mlruns_dir.mkdir()
+    mlflow.set_tracking_uri(mlruns_dir.as_uri())
     yield
     mlflow.set_tracking_uri("")
 
@@ -50,10 +52,10 @@ def _make_exp_id() -> str:
     return mlflow.create_experiment(f"test-{uuid.uuid4().hex[:8]}")
 
 
-def test_train_dimred_pca_returns_dict_with_required_keys(
-    minimal_df_dimred, minimal_y, tmp_path
-):
+def test_train_dimred_pca_returns_dict_with_required_keys(minimal_df_dimred, minimal_y, tmp_path):
     """train_dimred_and_evaluate com PCA retorna dict com chaves obrigatorias."""
+    art_dir = tmp_path / "art"
+    art_dir.mkdir()
     result = train_dimred_and_evaluate(
         "logreg",
         "pca",
@@ -67,7 +69,7 @@ def test_train_dimred_pca_returns_dict_with_required_keys(
         experiment_id=_make_exp_id(),
         datahash8="30c6be3a",
         githash7="test123",
-        tmp_dir=tmp_path,
+        tmp_dir=art_dir,
         baseline_run_id="",
     )
     required_keys = {
@@ -86,6 +88,8 @@ def test_train_dimred_pca_returns_dict_with_required_keys(
 
 def test_train_dimred_lda_n_components_is_1(minimal_df_dimred, minimal_y, tmp_path):
     """LDA pipeline: step dimred tem n_components == 1."""
+    art_dir = tmp_path / "art"
+    art_dir.mkdir()
     result = train_dimred_and_evaluate(
         "logreg",
         "lda",
@@ -99,7 +103,7 @@ def test_train_dimred_lda_n_components_is_1(minimal_df_dimred, minimal_y, tmp_pa
         experiment_id=_make_exp_id(),
         datahash8="30c6be3a",
         githash7="test123",
-        tmp_dir=tmp_path,
+        tmp_dir=art_dir,
         baseline_run_id="",
     )
     pipeline = result["best_pipeline"]
@@ -109,6 +113,8 @@ def test_train_dimred_lda_n_components_is_1(minimal_df_dimred, minimal_y, tmp_pa
 
 def test_train_dimred_params_not_empty(minimal_df_dimred, minimal_y, tmp_path):
     """Apos run PCA, params MLflow contem dimred_method e dimred_n_components."""
+    art_dir = tmp_path / "art"
+    art_dir.mkdir()
     result = train_dimred_and_evaluate(
         "logreg",
         "pca",
@@ -122,7 +128,7 @@ def test_train_dimred_params_not_empty(minimal_df_dimred, minimal_y, tmp_path):
         experiment_id=_make_exp_id(),
         datahash8="30c6be3a",
         githash7="test123",
-        tmp_dir=tmp_path,
+        tmp_dir=art_dir,
         baseline_run_id="",
     )
     client = mlflow.tracking.MlflowClient()
@@ -132,10 +138,10 @@ def test_train_dimred_params_not_empty(minimal_df_dimred, minimal_y, tmp_path):
     assert params.get("scoring_primary") == "roc_auc"
 
 
-def test_train_dimred_pca_explained_variance_is_float(
-    minimal_df_dimred, minimal_y, tmp_path
-):
+def test_train_dimred_pca_explained_variance_is_float(minimal_df_dimred, minimal_y, tmp_path):
     """result['dimred_explained_variance'] e float entre 0 e 1 para PCA."""
+    art_dir = tmp_path / "art"
+    art_dir.mkdir()
     result = train_dimred_and_evaluate(
         "logreg",
         "pca",
@@ -149,7 +155,7 @@ def test_train_dimred_pca_explained_variance_is_float(
         experiment_id=_make_exp_id(),
         datahash8="30c6be3a",
         githash7="test123",
-        tmp_dir=tmp_path,
+        tmp_dir=art_dir,
         baseline_run_id="",
     )
     ev = result["dimred_explained_variance"]

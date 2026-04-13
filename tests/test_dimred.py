@@ -1,4 +1,5 @@
 """Testes RED para build_dimred_pipeline e compute_pca_n_components."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -64,9 +65,7 @@ def test_dimred_pipeline_pca_fit_predict_smoke():
 
     rng = np.random.default_rng(0)
     n = 40
-    X_simple = pd.DataFrame(
-        rng.standard_normal((n, 5)), columns=[f"f{i}" for i in range(5)]
-    )
+    X_simple = pd.DataFrame(rng.standard_normal((n, 5)), columns=[f"f{i}" for i in range(5)])
     y = np.array([0] * 20 + [1] * 20)
     pipe = SKPipeline(
         [

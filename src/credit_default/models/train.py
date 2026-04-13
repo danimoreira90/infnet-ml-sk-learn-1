@@ -310,3 +310,221 @@ def train_and_evaluate(
         "cv_f1_mean": cv_f1_mean,
         "cv_f1_std": cv_f1_std,
     }
+
+
+def train_dimred_and_evaluate(
+    model_name: str,
+    dimred_method: str,
+    n_components: int,
+    *,
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    X_val: pd.DataFrame,
+    y_val: pd.Series,
+    seed: int = 42,
+    cv_folds: int = 5,
+    experiment_name: str = "infnet-ml-sistema",
+    experiment_id: str | None = None,
+    datahash8: str,
+    githash7: str,
+    tmp_dir: Path,
+    baseline_run_id: str = "",
+) -> dict[str, Any]:
+    """Pipeline com dimred: pre -> dimred -> clf, sem tuning (search=none).
+
+    Fluxo:
+    1. build_dimred_pipeline(model_name, dimred_method, n_components, seed=seed)
+    2. cross_validate() com scoring={roc_auc, f1_macro},
+       cv=StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=seed)
+    3. pipeline.fit(X_train, y_train)
+    4. Predict X_val: y_pred, y_proba
+    5. compute_all_metrics(y_val, y_pred, y_proba)
+    6. inference_latency_ms: tempo medio por amostra no X_val
+    7. Plots: confusion_matrix, roc, pr no tmp_dir
+    8. Para PCA: dimred_explained_variance = explained_variance_ratio_.sum()
+       Para LDA: dimred_explained_variance = "na"
+    9. run_summary.json com primary_metric="roc_auc", dimred_method, dimred_n_components
+    10. split_fingerprint.txt
+    11. feature_importances.csv se clf tem feature_importances_
+    12. compose_run_name(stage="dimred", dimred=f"{dimred_method}_k{n_components}", ...)
+    13. MLflow: start_run -> log_standard_tags (dimred + baseline_run_id)
+                          -> log_standard_params (dimred_method, dimred_n_components)
+                          -> log_standard_metrics -> log_standard_artifacts
+
+    Parameters
+    ----------
+    model_name     : chave do MODEL_REGISTRY
+    dimred_method  : "pca" ou "lda"
+    n_components   : numero de componentes (LDA binario: sempre 1)
+    X_train, y_train : dados de treino
+    X_val, y_val     : dados de validacao
+    seed           : semente
+    cv_folds       : numero de folds CV
+    experiment_name: nome do experiment MLflow (ignorado se experiment_id fornecido)
+    experiment_id  : ID direto do experiment (para testes)
+    datahash8      : primeiros 8 chars SHA-256 do dataset
+    githash7       : primeiros 7 chars do git commit hash
+    tmp_dir        : diretorio temporario para artefatos
+    baseline_run_id: run_id do run P3 baseline equivalente (tag baseline_run_id)
+
+    Returns
+    -------
+    dict com chaves: best_pipeline, metrics, run_id, run_name,
+                     cv_roc_auc_mean, cv_roc_auc_std, cv_f1_mean, cv_f1_std,
+                     dimred_explained_variance
+    """
+    from credit_default.features.dimred import build_dimred_pipeline
+
+    spec = get_model_spec(model_name)
+    cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=seed)
+
+    # 1. Build pipeline com dimred
+    pipeline = build_dimred_pipeline(model_name, dimred_method, n_components, seed=seed)
+
+    # 2. Cross-validation
+    cv_results = cross_validate(
+        pipeline,
+        X_train,
+        y_train,
+        cv=cv,
+        scoring={"roc_auc": "roc_auc", "f1_macro": "f1_macro"},
+        n_jobs=-1,
+    )
+    cv_roc_auc_mean = float(np.mean(cv_results["test_roc_auc"]))
+    cv_roc_auc_std = float(np.std(cv_results["test_roc_auc"]))
+    cv_f1_mean = float(np.mean(cv_results["test_f1_macro"]))
+    cv_f1_std = float(np.std(cv_results["test_f1_macro"]))
+
+    # 3. Fit simples no X_train (sem tuning)
+    t0 = time.perf_counter()
+    pipeline.fit(X_train, y_train)
+    training_time_s = time.perf_counter() - t0
+
+    # 4-5. Predict e metricas
+    y_pred = pipeline.predict(X_val)
+    y_proba = pipeline.predict_proba(X_val)[:, 1]
+    metrics = compute_all_metrics(np.array(y_val), y_pred, y_proba)
+
+    # 6. Inference latency
+    n_samples = len(X_val)
+    t_inf = time.perf_counter()
+    pipeline.predict_proba(X_val)
+    inference_latency_ms = (time.perf_counter() - t_inf) / n_samples * 1000
+
+    # 7. Plots
+    confusion_matrix_plot(np.array(y_val), y_pred, output_path=tmp_dir / "confusion_matrix.png")
+    roc_plot(np.array(y_val), y_proba, output_path=tmp_dir / "roc_curve.png")
+    pr_plot(np.array(y_val), y_proba, output_path=tmp_dir / "pr_curve.png")
+
+    # 8. Explained variance
+    dimred_ev: float | str
+    if dimred_method == "pca":
+        dimred_ev = float(pipeline.named_steps["dimred"].explained_variance_ratio_.sum())
+    else:
+        dimred_ev = "na"
+
+    # 9. run_summary.json
+    dimred_label = f"{dimred_method}_k{n_components}"
+    summary = {
+        "model_name": model_name,
+        "primary_metric": "roc_auc",
+        "metrics": metrics,
+        "cv_roc_auc_mean": cv_roc_auc_mean,
+        "cv_roc_auc_std": cv_roc_auc_std,
+        "cv_f1_mean": cv_f1_mean,
+        "cv_f1_std": cv_f1_std,
+        "dimred_method": dimred_method,
+        "dimred_n_components": n_components,
+        "dimred_explained_variance": dimred_ev,
+        "seed": seed,
+        "training_time_s": training_time_s,
+        "inference_latency_ms": inference_latency_ms,
+    }
+    with open(tmp_dir / "run_summary.json", "w") as f:
+        json.dump(summary, f, indent=2)
+
+    # 10. split_fingerprint.txt
+    (tmp_dir / "split_fingerprint.txt").write_text(f"datahash8={datahash8}\ngithash7={githash7}\n")
+
+    # 11. feature_importances.csv (tree/ensemble)
+    has_fi = False
+    clf_step = pipeline.named_steps.get("clf")
+    estimator_inner = getattr(clf_step, "estimator", clf_step)
+    if hasattr(estimator_inner, "feature_importances_"):
+        has_fi = True
+        fi = pd.DataFrame({"importance": estimator_inner.feature_importances_})
+        fi.to_csv(tmp_dir / "feature_importances.csv", index=False)
+
+    # 12. clf_params (baseline: get_params filtrado para escalares clf__*)
+    _SCALAR_TYPES = (str, int, float, bool, type(None))
+    clf_params: dict[str, Any] = {
+        k: v
+        for k, v in pipeline.get_params(deep=True).items()
+        if k.startswith("clf__") and isinstance(v, _SCALAR_TYPES)
+    }
+
+    # 13. Run name
+    run_name = compose_run_name(
+        stage="dimred",
+        model=model_name,
+        preproc="numstd_catoh",
+        dimred=dimred_label,
+        search="none",
+        seed=seed,
+        datahash8=datahash8,
+        githash7=githash7,
+    )
+
+    # 14. MLflow logging
+    if experiment_id is None:
+        experiment_id = get_or_create_experiment(experiment_name)
+
+    with mlflow.start_run(run_name=run_name, experiment_id=experiment_id) as run:
+        log_standard_tags(
+            run,
+            model_family=spec["model_family"],
+            git_commit=githash7,
+            dataset_fingerprint=datahash8,
+            compute_profile_s=training_time_s,
+            dimred_method=dimred_method,
+            dimred_n_components=n_components,
+            dimred_explained_variance=dimred_ev,
+            baseline_run_id=baseline_run_id,
+            project_part="parte_4",
+        )
+        log_standard_params(
+            run,
+            model_name=model_name,
+            seed=seed,
+            cv_folds=cv_folds,
+            n_train=len(X_train),
+            n_val=len(X_val),
+            search_type="none",
+            clf_params=clf_params,
+            dimred_method=dimred_method,
+            dimred_n_components=n_components,
+        )
+        log_standard_metrics(
+            run,
+            metrics,
+            cv_roc_auc_mean=cv_roc_auc_mean,
+            cv_roc_auc_std=cv_roc_auc_std,
+            cv_f1_mean=cv_f1_mean,
+            cv_f1_std=cv_f1_std,
+            training_time_s=training_time_s,
+            inference_latency_ms=inference_latency_ms,
+        )
+        log_standard_artifacts(run, tmp_dir, has_feature_importances=has_fi)
+        run_id = run.info.run_id
+
+    return {
+        "best_pipeline": pipeline,
+        "metrics": metrics,
+        "run_id": run_id,
+        "run_name": run_name,
+        "cv_roc_auc_mean": cv_roc_auc_mean,
+        "cv_roc_auc_std": cv_roc_auc_std,
+        "cv_f1_mean": cv_f1_mean,
+        "cv_f1_std": cv_f1_std,
+        "dimred_explained_variance": dimred_ev,
+    }
