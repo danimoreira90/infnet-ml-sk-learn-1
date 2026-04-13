@@ -141,13 +141,13 @@ def main() -> None:
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(content, encoding="utf-8")
 
-    print(f"", flush=True)
-    print(f"╔══════════════════════════════════════════════════╗", flush=True)
-    print(f"║  VENCEDOR: {winner.info.run_id[:8]}{'':>38}║", flush=True)
-    print(f"║  Run name: {(winner.info.run_name or '')[:47]}║", flush=True)
-    print(f"║  Step decisivo: {step} — {reason[:32]}║", flush=True)
-    print(f"╚══════════════════════════════════════════════════╝", flush=True)
-    print(f"", flush=True)
+    print("", flush=True)
+    print("=" * 52, flush=True)
+    print(f"  VENCEDOR: {winner.info.run_id[:8]}", flush=True)
+    print(f"  Run name: {(winner.info.run_name or '')[:50]}", flush=True)
+    print(f"  Step decisivo: {step} -- {reason[:40]}", flush=True)
+    print("=" * 52, flush=True)
+    print("", flush=True)
     print(f"[OK] {OUTPUT_PATH} gerado.", flush=True)
 
 
