@@ -33,3 +33,7 @@ mlruns/
 # Figuras geradas em runtime (parte_2); .gitkeep permanece versionado
 reports/figures/parte_2/*.png
 !reports/figures/parte_2/.gitkeep
+
+# Figuras geradas em runtime (parte_3); .gitkeep permanece versionado
+reports/figures/parte_3/*.png
+!reports/figures/parte_3/.gitkeep
