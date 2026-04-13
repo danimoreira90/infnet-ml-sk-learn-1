@@ -32,20 +32,29 @@ def log_standard_tags(
     git_commit: str,
     dataset_fingerprint: str,
     compute_profile_s: float,
+    dimred_method: str = "none",
+    dimred_n_components: int = 0,
+    dimred_explained_variance: float | str = "na",
+    baseline_run_id: str = "",
+    project_part: str = "parte_3",
 ) -> None:
     """Loga tags padronizadas no run ativo.
 
-    Tags logadas (10 total):
+    Tags logadas (10 base + 4 dimred opcionais):
     1. model_family
     2. git_commit
     3. dataset_fingerprint
     4. compute_profile_s (str do float)
-    5. project_part = "parte_3"
+    5. project_part (default "parte_3"; "parte_4" para runs dimred)
     6. framework = "scikit-learn"
     7. python_version (sys.version)
     8. os_platform (platform.platform())
     9. stage (extraido do run_name: primeira parte antes de '__')
     10. search_type (extraido do run_name: quinta parte)
+    11. dimred_method (default "none")
+    12. dimred_n_components (default "0")
+    13. dimred_explained_variance (default "na"; float para PCA)
+    14. baseline_run_id (default ""; run_id do run P3 equivalente)
 
     Nota: mlflow.runName e atributo nativo do run (setado em start_run),
     NAO duplicado como tag.
@@ -61,12 +70,16 @@ def log_standard_tags(
             "git_commit": git_commit,
             "dataset_fingerprint": dataset_fingerprint,
             "compute_profile_s": str(compute_profile_s),
-            "project_part": "parte_3",
+            "project_part": project_part,
             "framework": "scikit-learn",
             "python_version": sys.version,
             "os_platform": platform.platform(),
             "stage": stage,
             "search_type": search_type,
+            "dimred_method": dimred_method,
+            "dimred_n_components": str(dimred_n_components),
+            "dimred_explained_variance": str(dimred_explained_variance),
+            "baseline_run_id": baseline_run_id,
         }
     )
 
