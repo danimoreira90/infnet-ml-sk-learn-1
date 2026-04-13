@@ -25,6 +25,7 @@ from credit_default.tracking.mlflow_utils import (
     get_or_create_experiment,
     log_standard_artifacts,
     log_standard_metrics,
+    log_standard_params,
     log_standard_tags,
 )
 from credit_default.tracking.run_naming import compose_run_name
@@ -161,12 +162,13 @@ def train_and_evaluate(
     # 3/4. Tune ou fit simples
     search_type = spec["search_type"]
     search_name = "none"
+    search_obj = None  # captura o objeto de busca para extrair best_params_
     t0 = time.perf_counter()
 
     if tune and search_type != "none":
         pipeline = build_pipeline(model_name, seed=seed)  # fresh pipeline para search
         if search_type == "grid":
-            search = GridSearchCV(
+            search_obj = GridSearchCV(
                 pipeline,
                 param_grid=spec["param_grid"],
                 scoring="roc_auc",
@@ -176,7 +178,7 @@ def train_and_evaluate(
             )
             search_name = "grid"
         else:
-            search = RandomizedSearchCV(
+            search_obj = RandomizedSearchCV(
                 pipeline,
                 param_distributions=spec["param_grid"],
                 n_iter=30,
@@ -187,8 +189,8 @@ def train_and_evaluate(
                 n_jobs=-1,
             )
             search_name = "random"
-        search.fit(X_train, y_train)
-        pipeline = search.best_estimator_
+        search_obj.fit(X_train, y_train)
+        pipeline = search_obj.best_estimator_
     else:
         pipeline.fit(X_train, y_train)
 
@@ -242,6 +244,19 @@ def train_and_evaluate(
         fi = pd.DataFrame({"importance": estimator.feature_importances_})
         fi.to_csv(tmp_dir / "feature_importances.csv", index=False)
 
+    # 11b. Extrair clf_params para logging MLflow
+    _SCALAR_TYPES = (str, int, float, bool, type(None))
+    if search_obj is not None:
+        # Tuned: best_params_ ja tem prefixo clf__
+        clf_params: dict[str, Any] = dict(search_obj.best_params_)
+    else:
+        # Baseline: get_params(deep=True) filtrado para escalares clf__*
+        clf_params = {
+            k: v
+            for k, v in pipeline.get_params(deep=True).items()
+            if k.startswith("clf__") and isinstance(v, _SCALAR_TYPES)
+        }
+
     # 12. Run name
     run_name = compose_run_name(
         stage="tune" if tune else "baseline",
@@ -261,6 +276,16 @@ def train_and_evaluate(
             git_commit=githash7,
             dataset_fingerprint=datahash8,
             compute_profile_s=training_time_s,
+        )
+        log_standard_params(
+            run,
+            model_name=model_name,
+            seed=seed,
+            cv_folds=cv_folds,
+            n_train=len(X_train),
+            n_val=len(X_val),
+            search_type=search_name,
+            clf_params=clf_params,
         )
         log_standard_metrics(
             run,

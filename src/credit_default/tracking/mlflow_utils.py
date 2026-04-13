@@ -5,6 +5,7 @@ from __future__ import annotations
 import platform
 import sys
 from pathlib import Path
+from typing import Any
 
 import mlflow
 from mlflow.tracking import MlflowClient
@@ -103,6 +104,41 @@ def log_standard_metrics(
             "inference_latency_ms": inference_latency_ms,
         }
     )
+
+
+def log_standard_params(
+    run: mlflow.ActiveRun,
+    *,
+    model_name: str,
+    seed: int,
+    cv_folds: int,
+    n_train: int,
+    n_val: int,
+    search_type: str,
+    clf_params: dict[str, Any],
+) -> None:
+    """Loga parametros padronizados no run ativo.
+
+    Params logados:
+    Meta (8): model_name, seed, cv_folds, scoring_primary, split_strategy,
+              search_type, n_train, n_val
+    Classifier (clf__*): clf_params — defaults para baseline, best_params_ para tuned
+
+    Total minimo: 8 meta + len(clf_params) params. DoD exige >= 8 total
+    (minimo 8 meta + 3 clf__ hyperparams do estimador).
+    """
+    meta: dict[str, str] = {
+        "model_name": model_name,
+        "seed": str(seed),
+        "cv_folds": str(cv_folds),
+        "scoring_primary": "roc_auc",
+        "split_strategy": "stratified_70_15_15_from_part2",
+        "search_type": search_type,
+        "n_train": str(n_train),
+        "n_val": str(n_val),
+    }
+    clf_params_str = {k: str(v) for k, v in clf_params.items()}
+    mlflow.log_params({**meta, **clf_params_str})
 
 
 def log_standard_artifacts(
