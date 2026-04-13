@@ -341,3 +341,39 @@ pytest -q
 ruff check src/ scripts/ tests/
 black --check src/ scripts/ tests/
 ```
+
+---
+
+## Parte 3 — Modelagem e MLflow
+
+### Pre-requisitos
+
+```bash
+uv sync
+```
+
+### Execucao
+
+```bash
+# 1. Treino baseline (5 modelos, ~3-5 min)
+uv run python scripts/train_baseline.py
+
+# 2. Treino com tuning (5 modelos, ~15-25 min)
+uv run python scripts/train_tuned.py
+
+# 3. Gerar tabelas comparativas
+uv run python scripts/generate_comparison_table.py
+```
+
+### Visualizar resultados no MLflow UI
+
+```bash
+uv run mlflow ui --backend-store-uri mlruns/
+# Abrir http://localhost:5000
+```
+
+### Testes da Parte 3
+
+```bash
+uv run python -m pytest tests/test_preprocessing.py tests/test_pipeline.py tests/test_registry.py tests/test_run_naming.py -v
+```
