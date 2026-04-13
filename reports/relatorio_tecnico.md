@@ -219,3 +219,53 @@ Cada run registra 4 tags extras alem das 10 da Parte 3:
 uv run python scripts/train_dimred.py
 uv run python scripts/generate_comparison_dimred.py
 ```
+
+---
+
+## Parte 5 — Selecao Final do Modelo
+
+### Objetivo
+
+Selecionar o modelo de operacao a partir dos 25 runs do experimento `infnet-ml-sistema` (5 baseline + 5 tune da Parte 3; 15 dimred da Parte 4), avalia-lo uma unica vez no test set (nunca tocado anteriormente) e registrar o modelo final no MLflow com signature para uso na Parte 6.
+
+### Integridade da Selecao
+
+O criterio de selecao foi definido e commitado em `docs/final_selection_criteria.md` **antes** de qualquer acesso ao test set. O timestamp do commit que cria esse arquivo precede todos os commits da Parte 5. Isso blinda a escolha contra vies de selecao post-hoc.
+
+### Auditor de Metricas
+
+`src/credit_default/audit/recompute_metrics.py` implementa `recompute_run_metrics(run_id)`: reconstroi o pipeline a partir dos params logados no MLflow, treina em X_train, avalia em X_val e compara com as metricas registradas (tolerancia 1e-4). Rodou em 3 runs aleatorios da P3/P4 antes do push final — todos OK.
+
+### Modelo Vencedor
+
+**GradientBoostingClassifier baseline** (`run_id`: `6743e23b1b4a4e2aa15201cebb394a07`, Parte 3)
+
+Criterio decisivo: step 3 (`inference_latency_ms`). O GB baseline (0.0019 ms/amostra) venceu o GB tunado (0.003 ms/amostra) com roc_auc e cv_roc_auc_std identicos na escala de 4 casas decimais. O tuning nao trouxe ganho mensuravel — resultado esperado para um ensemble robusto neste dataset.
+
+### Metricas no Test Set
+
+| Metrica | Val (candidato) | Test (final) | Delta |
+|---------|-----------------|--------------|-------|
+| roc_auc | 0.779480 | **0.768213** | -0.011 |
+| f1_macro | 0.673333 | 0.687623 | +0.014 |
+| accuracy | 0.816908 | 0.821802 | +0.005 |
+
+Queda de 1.1 pp em roc_auc val→test e dentro do intervalo normal. Demais metricas melhoraram com o retreino em X_trainval (25.470 amostras vs 20.975 em treino).
+
+### Artefatos Gerados
+
+- `reports/parte_5/consolidated_results.md` — tabela dos 25 runs ordenados pelo criterio
+- `reports/parte_5/final_selection_rationale.md` — vencedor e qual step decidiu
+- `reports/parte_5/final_selection.md` — documento consolidado pos-test-eval
+- `reports/parte_5/test_metrics.json` — metricas brutas do test set
+- MLflow run `final_eval__gb__...` com `mlflow.sklearn.log_model` (primeiro log de modelo no projeto)
+
+### Reproducao
+
+```bash
+uv run python scripts/audit_sample.py
+uv run python scripts/generate_consolidated_results.py
+uv run python scripts/select_final_candidate.py
+# Apos aprovacao do vencedor:
+uv run python scripts/evaluate_final.py
+```

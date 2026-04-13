@@ -418,3 +418,56 @@ uv run pytest tests/test_dimred.py tests/test_train_dimred.py tests/test_generat
 ```bash
 uv run pytest --tb=short -q
 ```
+
+---
+
+## Como rodar a Parte 5 — Selecao Final do Modelo
+
+### Pre-requisitos
+
+- Parte 3 e Parte 4 executadas (25 runs no experimento `infnet-ml-sistema`)
+- `docs/final_selection_criteria.md` presente e imutavel
+
+### Passo 1 — Auditoria de integridade (3 runs aleatorios P3/P4)
+
+```bash
+uv run python scripts/audit_sample.py
+# Esperado: "[AUDIT SAMPLE] 3/3 runs auditados OK"
+```
+
+### Passo 2 — Tabela consolidada dos 25 runs
+
+```bash
+uv run python scripts/generate_consolidated_results.py
+# Gera: reports/parte_5/consolidated_results.md
+```
+
+### Passo 3 — Selecionar candidato final (nao toca test set)
+
+```bash
+uv run python scripts/select_final_candidate.py
+# Gera: reports/parte_5/final_selection_rationale.md
+# Mostra vencedor e step decisivo
+```
+
+### Passo 4 — Avaliar no test set (UMA UNICA VEZ — apos aprovacao humana)
+
+```bash
+uv run python scripts/evaluate_final.py
+# Gera: reports/parte_5/test_metrics.json
+# Loga MLflow run com stage="final_eval" e mlflow.sklearn.log_model
+```
+
+### Guards de integridade
+
+```powershell
+# Guard 1A: inventario de arquivos com "test_idx" (esperado: 4 arquivos)
+Select-String -Path scripts\*.py, src\**\*.py, tests\*.py -Pattern "test_idx" |
+    Select-Object -ExpandProperty Path -Unique
+
+# Guard 1B: include_test=True em exatamente 1 arquivo
+Select-String -Path scripts\*.py, src\**\*.py, tests\*.py -Pattern "include_test=True"
+
+# Guard 1C: mlflow.sklearn.log_model em exatamente 1 arquivo
+Select-String -Path scripts\*.py, src\**\*.py -Pattern "mlflow.sklearn.log_model"
+```
