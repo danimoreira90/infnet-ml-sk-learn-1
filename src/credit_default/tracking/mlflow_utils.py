@@ -116,15 +116,17 @@ def log_standard_params(
     n_val: int,
     search_type: str,
     clf_params: dict[str, Any],
+    dimred_method: str = "none",
+    dimred_n_components: int = 0,
 ) -> None:
     """Loga parametros padronizados no run ativo.
 
     Params logados:
-    Meta (8): model_name, seed, cv_folds, scoring_primary, split_strategy,
-              search_type, n_train, n_val
+    Meta (10): model_name, seed, cv_folds, scoring_primary, split_strategy,
+               search_type, n_train, n_val, dimred_method, dimred_n_components
     Classifier (clf__*): clf_params — defaults para baseline, best_params_ para tuned
 
-    Total minimo: 8 meta + len(clf_params) params. DoD exige >= 8 total
+    Total minimo: 10 meta + len(clf_params) params. DoD exige >= 8 total
     (minimo 8 meta + 3 clf__ hyperparams do estimador).
     """
     meta: dict[str, str] = {
@@ -136,6 +138,8 @@ def log_standard_params(
         "search_type": search_type,
         "n_train": str(n_train),
         "n_val": str(n_val),
+        "dimred_method": dimred_method,
+        "dimred_n_components": str(dimred_n_components),
     }
     clf_params_str = {k: str(v) for k, v in clf_params.items()}
     mlflow.log_params({**meta, **clf_params_str})
