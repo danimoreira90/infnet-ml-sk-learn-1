@@ -377,3 +377,44 @@ uv run mlflow ui --backend-store-uri mlruns/
 ```bash
 uv run python -m pytest tests/test_preprocessing.py tests/test_pipeline.py tests/test_registry.py tests/test_run_naming.py -v
 ```
+
+---
+
+## Parte 4 — Reducao de Dimensionalidade
+
+Aplica PCA e LDA ao pipeline sklearn, retreina os 5 modelos e compara com o baseline da Parte 3.
+
+**Tecnicas:** PCA (nao-supervisionado) e LDA (supervisionado). t-SNE excluido — transductivo e com custo O(n²) inviavel para CV.
+
+**Configuracoes:** `pca_k10` (10 componentes, 84.2% EV), `pca_k15` (15 componentes, 94.3% EV), `lda_k1` (1 componente — forcado pela matematica binaria).
+
+**Total de runs:** 15 (5 modelos × 3 configs), adicionados ao experimento `infnet-ml-sistema` sem deletar os runs da Parte 3.
+
+### Execucao
+
+```bash
+# 1. Treino dimred (15 runs, ~3-5 min)
+uv run python scripts/train_dimred.py
+
+# 2. Gerar tabelas comparativas
+uv run python scripts/generate_comparison_dimred.py
+```
+
+### Outputs
+
+| Arquivo | Descricao |
+|---------|-----------|
+| `reports/parte_4/comparison_dimred.md` | 20 runs (P3 + P4) ordenados por ROC-AUC |
+| `reports/parte_4/comparison_pca_vs_lda.md` | Pivot: modelo × config de dimred |
+
+### Testes da Parte 4
+
+```bash
+uv run pytest tests/test_dimred.py tests/test_train_dimred.py tests/test_generate_comparison_dimred.py -v
+```
+
+### Suite completa
+
+```bash
+uv run pytest --tb=short -q
+```
