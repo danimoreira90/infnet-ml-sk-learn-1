@@ -128,3 +128,94 @@ uv run python scripts/train_baseline.py
 uv run python scripts/train_tuned.py
 uv run python scripts/generate_comparison_table.py
 ```
+
+---
+
+## Parte 4 — Reducao de Dimensionalidade (PCA e LDA)
+
+### Objetivo
+
+Aplicar duas tecnicas de reducao de dimensionalidade ao pipeline sklearn, retreinar os 5 modelos e comparar desempenho com o baseline da Parte 3. Metrica primaria: **roc_auc**.
+
+### Tecnicas Escolhidas
+
+**PCA — Principal Component Analysis** (nao-supervisionado)
+- Linear, determinístico, rapido, maduro em producao.
+- Inserido apos o ColumnTransformer, antes do classificador.
+- `n_components` calculado para reter >= 85% da variancia explicada (determinístico no conjunto de treino).
+- Testadas duas configuracoes: `pca_k10` (10 componentes, 84.2% EV) e `pca_k15` (15 componentes, 94.3% EV).
+
+**LDA — Linear Discriminant Analysis** (supervisionado)
+- Usa o target para maximizar separacao entre classes.
+- Em classificacao binaria, `n_components` e forcado a 1 pela matematica: `min(n_classes - 1, n_features) = 1`. Configuracao: `lda_k1`.
+- Recebe `y` automaticamente via `Pipeline.fit(X, y)`.
+
+**t-SNE — Excluido**
+- Algoritmo transductivo (nao gera transformacao para novos dados).
+- Custo O(n²) proibitivo com validacao cruzada (20k amostras × 5 folds).
+- Destinado a visualizacao, nao a pipelines de predicao em producao.
+
+### Arquitetura do Pipeline (3 etapas)
+
+```
+pre (ColumnTransformer)  →  dimred (PCA | LDA)  →  clf (estimador)
+```
+
+O ColumnTransformer e fitado exclusivamente no fold de treino (invariante garantido pelo Pipeline sklearn). A etapa `dimred` recebe o array transformado denso (OneHotEncoder com `sparse_output=False`).
+
+### Configuracoes Treinadas
+
+| Config | Metodo | n_components | EV Retida |
+|--------|--------|-------------|-----------|
+| pca_k10 | PCA | 10 | 84.2% |
+| pca_k15 | PCA | 15 | 94.3% |
+| lda_k1 | LDA | 1 | n/a (supervisionado) |
+
+Total: **15 runs** (5 modelos × 3 configs). Adicionados ao experimento `infnet-ml-sistema` sem deletar os 10 runs da Parte 3.
+
+### Tags Adicionais (Parte 4)
+
+Cada run registra 4 tags extras alem das 10 da Parte 3:
+- `dimred_method` ∈ {pca, lda}
+- `dimred_n_components` (int)
+- `dimred_explained_variance` (float para PCA, "na" para LDA)
+- `baseline_run_id` (run_id do baseline P3 equivalente)
+
+### Protecoes de Integridade
+
+- **Guard 1 (pre-run)**: Verifica existencia de `artifacts/data_fingerprint.json` e `data/credit_card_cleaned.parquet`. `sys.exit(1)` em falha.
+- **Guard 2 (pos-run)**: `mlflow.get_run(run_id).data.params` deve conter minimamente `{model_name, seed, cv_folds, dimred_method, dimred_n_components, scoring_primary, search_type}`. `sys.exit(1)` se params vazio.
+
+### Resultados
+
+| Modelo | Baseline P3 | pca_k10 | pca_k15 | lda_k1 |
+|--------|-------------|---------|---------|--------|
+| perceptron | 0.6931 | 0.6591 | 0.6700 | 0.7171 |
+| logreg | 0.7232 | 0.7045 | 0.7167 | 0.7171 |
+| dtree | 0.5987 | 0.6006 | 0.6096 | 0.5968 |
+| rf | 0.7573 | 0.7420 | 0.7417 | 0.6530 |
+| gb | 0.7795 | 0.7620 | 0.7661 | 0.7189 |
+
+**Observacoes principais:**
+
+1. **PCA degrada modelos ensemble**: GradientBoosting e RandomForest perdem ate 1.5 pp de ROC-AUC com PCA (k=10 ou k=15). Esses modelos sao robustos a features correlacionadas e nao se beneficiam de compressao linear.
+
+2. **LDA beneficia modelos lineares**: Perceptron e LogReg com LDA (k=1) atingem ROC-AUC 0.717, superior ao baseline desses modelos. LDA projeta os dados no discriminante otimo para classificacao binaria.
+
+3. **Custo computacional**: LDA e o mais rapido (projeta em 1 dimensao). PCA k=10 e similar ao baseline. PCA k=15 adiciona ~35% de custo (9s vs 6.6s para GB).
+
+4. **Interpretabilidade**: LDA produz 1 componente com significado discriminativo direto. PCA produz combinacoes lineares das 23 features (menos interpretavel). Baseline mantém features originais com maior interpretabilidade.
+
+5. **Melhor modelo geral**: GradientBoosting baseline (ROC-AUC 0.7795) permanece superior a todas as configs de dimred. A reducao de dimensionalidade nao melhora o modelo campeao para este dataset.
+
+### Tabelas Completas
+
+- `reports/parte_4/comparison_dimred.md` — 20 runs ordenados por roc_auc
+- `reports/parte_4/comparison_pca_vs_lda.md` — pivot modelo × config
+
+### Reproducao
+
+```bash
+uv run python scripts/train_dimred.py
+uv run python scripts/generate_comparison_dimred.py
+```
