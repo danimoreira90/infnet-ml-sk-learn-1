@@ -16,8 +16,15 @@ def isolated_mlflow(tmp_path):
     mlflow.set_tracking_uri("")
 
 
-def _run_with_params(clf_params: dict, search_type: str = "none") -> dict:
-    exp_id = mlflow.create_experiment("test-exp")
+def _run_with_params(
+    clf_params: dict,
+    search_type: str = "none",
+    dimred_method: str = "none",
+    dimred_n_components: int = 0,
+) -> dict:
+    import uuid
+
+    exp_id = mlflow.create_experiment(f"test-{uuid.uuid4().hex[:8]}")
     with mlflow.start_run(experiment_id=exp_id) as run:
         log_standard_params(
             run,
@@ -28,6 +35,8 @@ def _run_with_params(clf_params: dict, search_type: str = "none") -> dict:
             n_val=4495,
             search_type=search_type,
             clf_params=clf_params,
+            dimred_method=dimred_method,
+            dimred_n_components=dimred_n_components,
         )
         run_id = run.info.run_id
     client = mlflow.tracking.MlflowClient()
@@ -90,3 +99,28 @@ def test_log_params_tuned_best_params():
     assert params["clf__n_estimators"] == "300"
     assert params["clf__max_depth"] == "10"
     assert params["clf__max_features"] == "sqrt"
+
+
+def test_log_params_dimred_pca_keys_present():
+    """Params dimred PCA: dimred_method e dimred_n_components presentes."""
+    params = _run_with_params(
+        {"clf__C": 1.0},
+        search_type="none",
+        dimred_method="pca",
+        dimred_n_components=10,
+    )
+    assert params["dimred_method"] == "pca"
+    assert params["dimred_n_components"] == "10"
+    assert params["scoring_primary"] == "roc_auc"
+
+
+def test_log_params_dimred_lda_keys_present():
+    """Params dimred LDA: dimred_method=lda e dimred_n_components=1."""
+    params = _run_with_params(
+        {"clf__C": 1.0},
+        search_type="none",
+        dimred_method="lda",
+        dimred_n_components=1,
+    )
+    assert params["dimred_method"] == "lda"
+    assert params["dimred_n_components"] == "1"
