@@ -1,6 +1,5 @@
 """Testes para construcao de pipelines."""
 
-import pytest
 from sklearn.pipeline import Pipeline
 
 from credit_default.models.pipeline import build_pipeline

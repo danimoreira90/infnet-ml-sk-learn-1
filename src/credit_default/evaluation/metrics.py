@@ -33,7 +33,9 @@ def compute_all_metrics(
     return {
         "roc_auc": float(roc_auc_score(y_true, y_proba)),
         "f1_macro": float(f1_score(y_true, y_pred, average="macro")),
-        "precision_macro": float(precision_score(y_true, y_pred, average="macro", zero_division=0)),
+        "precision_macro": float(
+            precision_score(y_true, y_pred, average="macro", zero_division=0)
+        ),
         "recall_macro": float(recall_score(y_true, y_pred, average="macro", zero_division=0)),
         "accuracy": float(accuracy_score(y_true, y_pred)),
     }

@@ -1,7 +1,6 @@
 """Testes para o modulo de preprocessing."""
 
 import numpy as np
-import pytest
 from sklearn.compose import ColumnTransformer
 
 from credit_default.features.preprocessing import (
@@ -54,8 +53,6 @@ def test_column_lists_cover_23_features():
 
 def test_preprocessor_handles_unknown_categories(minimal_df):
     """OneHotEncoder com handle_unknown='ignore' nao falha com categorias novas."""
-    import pandas as pd
-
     target_col = "default payment next month"
     X = minimal_df.drop(columns=[target_col])
     ct = build_preprocessor()

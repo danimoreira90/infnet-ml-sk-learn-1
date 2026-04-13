@@ -33,9 +33,11 @@ def main() -> None:
         fp = json.load(f)
     datahash8: str = fp["file_short"]
 
-    githash7 = subprocess.check_output(
-        ["git", "rev-parse", "--short=7", "HEAD"], cwd=repo_root
-    ).decode().strip()
+    githash7 = (
+        subprocess.check_output(["git", "rev-parse", "--short=7", "HEAD"], cwd=repo_root)
+        .decode()
+        .strip()
+    )
 
     print(f"\n{'='*70}")
     print(f"Baseline Training | datahash8={datahash8} | git={githash7}")
@@ -59,7 +61,6 @@ def main() -> None:
             )
         roc = result["metrics"]["roc_auc"]
         f1 = result["metrics"]["f1_macro"]
-        t = result["cv_roc_auc_mean"]
         print(f"{model_name:<15} {roc:>18.4f} {f1:>10.4f}")
         results.append((model_name, roc, f1))
 

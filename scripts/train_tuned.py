@@ -36,9 +36,11 @@ def main() -> None:
         fp = json.load(f)
     datahash8: str = fp["file_short"]
 
-    githash7 = subprocess.check_output(
-        ["git", "rev-parse", "--short=7", "HEAD"], cwd=repo_root
-    ).decode().strip()
+    githash7 = (
+        subprocess.check_output(["git", "rev-parse", "--short=7", "HEAD"], cwd=repo_root)
+        .decode()
+        .strip()
+    )
 
     print(f"\n{'='*70}")
     print(f"Tuned Training | datahash8={datahash8} | git={githash7}")

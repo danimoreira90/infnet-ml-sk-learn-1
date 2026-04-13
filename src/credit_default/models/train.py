@@ -231,9 +231,7 @@ def train_and_evaluate(
         json.dump(summary, f, indent=2)
 
     # 10. split_fingerprint.txt
-    (tmp_dir / "split_fingerprint.txt").write_text(
-        f"datahash8={datahash8}\ngithash7={githash7}\n"
-    )
+    (tmp_dir / "split_fingerprint.txt").write_text(f"datahash8={datahash8}\ngithash7={githash7}\n")
 
     # 11. feature_importances.csv (tree/ensemble)
     has_fi = False
@@ -241,9 +239,7 @@ def train_and_evaluate(
     estimator = getattr(clf_step, "estimator", clf_step)  # unwrap Calibrated if needed
     if hasattr(estimator, "feature_importances_"):
         has_fi = True
-        fi = pd.DataFrame(
-            {"importance": estimator.feature_importances_}
-        )
+        fi = pd.DataFrame({"importance": estimator.feature_importances_})
         fi.to_csv(tmp_dir / "feature_importances.csv", index=False)
 
     # 12. Run name

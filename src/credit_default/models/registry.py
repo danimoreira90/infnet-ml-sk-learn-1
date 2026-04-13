@@ -19,9 +19,7 @@ class ModelSpec(TypedDict):
 
 MODEL_REGISTRY: dict[str, ModelSpec] = {
     "perceptron": {
-        "estimator": CalibratedClassifierCV(
-            Perceptron(random_state=42), cv=3, method="sigmoid"
-        ),
+        "estimator": CalibratedClassifierCV(Perceptron(random_state=42), cv=3, method="sigmoid"),
         "param_grid": {
             "clf__estimator__max_iter": [300, 1000],
             "clf__estimator__eta0": [0.01, 0.1, 1.0],

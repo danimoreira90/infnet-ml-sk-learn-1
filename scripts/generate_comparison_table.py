@@ -72,7 +72,7 @@ def write_comparison(stage: str, output_path: Path) -> None:
     df = consolidated_results_table(stage=stage)
     header = f"# Comparacao de Modelos — {stage.capitalize()}\n\n"
     header += "> Ordenado por roc_auc descendente (metrica primaria).\n"
-    header += f"> Gerado automaticamente por `scripts/generate_comparison_table.py`.\n\n"
+    header += "> Gerado automaticamente por `scripts/generate_comparison_table.py`.\n\n"
     if df.empty:
         content = header + "_Nenhum run encontrado._\n"
     else:
