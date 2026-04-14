@@ -3,6 +3,7 @@
 **Data**: 2026-04-13
 **Experimento MLflow**: `infnet-ml-sistema` (id `236665223173386020`)
 **Final eval run_id**: `6be94912218a4c51bd8297ac77719b7f`
+**Model URI (Parte 6)**: `models:/m-4de1a2c47e7d40d9a679a40ba79c9c65`
 
 ---
 
@@ -114,3 +115,16 @@ O `roc_auc` caiu de 0.779 no val para 0.768 no test (delta -1.1 pp) — queda es
 As demais métricas (f1_macro, precision, recall, accuracy) melhoraram ligeiramente no test set. Isso é explicado pelo fato de o modelo final ser retreinado em X_trainval (25.470 amostras) em vez de X_train (20.975): mais dados produzem melhor generalização para métricas de classificação, enquanto o `roc_auc` — métrica de ranking — é naturalmente mais sensível à distribuição específica do conjunto de avaliação.
 
 **Conclusão**: o modelo opera conforme o esperado, sem ajuste post-hoc. As métricas são reportadas as-is, conforme o contrato de `docs/final_selection_criteria.md`.
+
+---
+
+## Modelo Registrado (uso na Parte 6)
+
+| Campo | Valor |
+|-------|-------|
+| MLflow run (final_eval) | `6be94912218a4c51bd8297ac77719b7f` |
+| Run name | `final_eval__gb__numstd_catoh__none__none__seed42__data30c6be3a__code14c0c28` |
+| Model URI | `models:/m-4de1a2c47e7d40d9a679a40ba79c9c65` |
+| Carregamento | `mlflow.sklearn.load_model('models:/m-4de1a2c47e7d40d9a679a40ba79c9c65')` |
+| Artefatos presentes | `MLmodel`, `model.pkl`, `conda.yaml`, `signature`, `serving_input_example.json` |
+| Layout MLflow 3.x | `mlruns/236665223173386020/models/m-4de1a2c47e7d40d9a679a40ba79c9c65/artifacts/` |

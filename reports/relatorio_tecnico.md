@@ -258,7 +258,7 @@ Queda de 1.1 pp em roc_auc val→test e dentro do intervalo normal. Demais metri
 - `reports/parte_5/final_selection_rationale.md` — vencedor e qual step decidiu
 - `reports/parte_5/final_selection.md` — documento consolidado pos-test-eval
 - `reports/parte_5/test_metrics.json` — metricas brutas do test set
-- MLflow run `final_eval__gb__...` com `mlflow.sklearn.log_model` (primeiro log de modelo no projeto)
+- MLflow run `final_eval__gb__numstd_catoh__none__none__seed42__data30c6be3a__code14c0c28` — model URI `models:/m-4de1a2c47e7d40d9a679a40ba79c9c65` (primeiro `mlflow.sklearn.log_model` no projeto; layout MLflow 3.x)
 
 ### Reproducao
 
