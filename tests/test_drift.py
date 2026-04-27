@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from credit_default.monitoring.drift import (
     _CATEGORICAL_FEATURES,
@@ -67,9 +66,9 @@ class TestDataDriftReport:
         result = data_drift_report(ref, ref)
         # Identical data: all p_values should be 1.0 (no drift)
         for feat, entry in result.items():
-            assert entry["drift_detected"] is False, (
-                f"{feat}: p={entry['p_value']:.4f} flagged on identical data"
-            )
+            assert (
+                entry["drift_detected"] is False
+            ), f"{feat}: p={entry['p_value']:.4f} flagged on identical data"
 
     def test_drift_detected_on_large_shift(self):
         ref = _make_df(n=1000, seed=0, shift=0.0)
@@ -152,6 +151,11 @@ class TestModelDriftReport:
         ref = {"roc_auc": 0.77}
         cur = {"roc_auc": 0.75}
         result = model_drift_report(ref, cur)
-        for key in ("reference_roc_auc", "current_roc_auc", "delta_roc_auc",
-                    "threshold", "drift_detected"):
+        for key in (
+            "reference_roc_auc",
+            "current_roc_auc",
+            "delta_roc_auc",
+            "threshold",
+            "drift_detected",
+        ):
             assert key in result

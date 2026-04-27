@@ -15,8 +15,8 @@ Integrity controls:
 
 from __future__ import annotations
 
-import uuid
 import logging
+import uuid
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
@@ -101,7 +101,8 @@ def predict(request: PredictRequest) -> PredictResponse:
     except Exception as exc:
         error_id = str(uuid.uuid4())
         logger.error("Predict error [%s]: %s", error_id, exc, exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Internal error. error_id={error_id}") from exc
+        msg = f"Internal error. error_id={error_id}"
+        raise HTTPException(status_code=500, detail=msg) from exc
 
 
 @app.post("/predict/batch", response_model=BatchPredictResponse)
@@ -127,4 +128,5 @@ def predict_batch(request: BatchPredictRequest) -> BatchPredictResponse:
     except Exception as exc:
         error_id = str(uuid.uuid4())
         logger.error("Batch predict error [%s]: %s", error_id, exc, exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Internal error. error_id={error_id}") from exc
+        msg = f"Internal error. error_id={error_id}"
+        raise HTTPException(status_code=500, detail=msg) from exc

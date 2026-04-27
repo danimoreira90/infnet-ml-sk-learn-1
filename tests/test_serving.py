@@ -10,7 +10,7 @@ Validates:
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -40,8 +40,10 @@ class TestPredictorLazyLoad:
     def test_load_calls_set_tracking_uri_before_load_model(self):
         p = Predictor(model_uri="models:/fake", tracking_uri="file:///fake/mlruns")
         manager = MagicMock()
-        with patch(_PATCH_SET_TRACKING) as mock_set, \
-             patch(_PATCH_LOAD_MODEL, return_value=MagicMock()) as mock_load:
+        with (
+            patch(_PATCH_SET_TRACKING) as mock_set,
+            patch(_PATCH_LOAD_MODEL, return_value=MagicMock()) as mock_load,
+        ):
             manager.attach_mock(mock_set, "set_tracking_uri")
             manager.attach_mock(mock_load, "load_model")
             p.load()
@@ -62,8 +64,10 @@ class TestPredictorLazyLoad:
             model_uri="/app/mlruns/236.../models/m-4de.../artifacts",
             tracking_uri="file:///app/mlruns",
         )
-        with patch(_PATCH_SET_TRACKING) as mock_set, \
-             patch(_PATCH_LOAD_MODEL, return_value=MagicMock()):
+        with (
+            patch(_PATCH_SET_TRACKING) as mock_set,
+            patch(_PATCH_LOAD_MODEL, return_value=MagicMock()),
+        ):
             p.load()
             mock_set.assert_not_called()
 
@@ -71,15 +75,16 @@ class TestPredictorLazyLoad:
 class TestPredictorFailFast:
     def test_load_failure_raises_runtime_error(self):
         p = Predictor(model_uri="models:/bad", tracking_uri="file:///fake")
-        with patch(_PATCH_SET_TRACKING), \
-             patch(_PATCH_LOAD_MODEL, side_effect=Exception("not found")):
+        with (
+            patch(_PATCH_SET_TRACKING),
+            patch(_PATCH_LOAD_MODEL, side_effect=Exception("not found")),
+        ):
             with pytest.raises(RuntimeError, match="Failed to load model"):
                 p.load()
 
     def test_is_ready_false_after_failed_load(self):
         p = Predictor(model_uri="models:/bad", tracking_uri="file:///fake")
-        with patch(_PATCH_SET_TRACKING), \
-             patch(_PATCH_LOAD_MODEL, side_effect=Exception("bad")):
+        with patch(_PATCH_SET_TRACKING), patch(_PATCH_LOAD_MODEL, side_effect=Exception("bad")):
             with pytest.raises(RuntimeError):
                 p.load()
         assert p.is_ready is False

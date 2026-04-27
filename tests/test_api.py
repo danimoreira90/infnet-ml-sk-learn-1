@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from credit_default.serving.predictor import FEATURE_COLUMNS, Predictor
+from credit_default.serving.predictor import FEATURE_COLUMNS
 
 FULL_RECORD = {col: 0 for col in FEATURE_COLUMNS}
 FULL_RECORD.update({"LIMIT_BAL": 30000, "AGE": 35, "SEX": 2})
@@ -44,7 +44,6 @@ def client(monkeypatch):
 
     # Override lifespan so it doesn't call predictor.load() against real disk
     from contextlib import asynccontextmanager
-    from typing import AsyncIterator
 
     @asynccontextmanager
     async def noop_lifespan(app):  # type: ignore[misc]
@@ -59,6 +58,7 @@ def client(monkeypatch):
 
 
 # -- /health ------------------------------------------------------------------
+
 
 class TestHealth:
     def test_health_returns_200(self, client):
@@ -76,6 +76,7 @@ class TestHealth:
 
 # -- / (info) -----------------------------------------------------------------
 
+
 class TestInfo:
     def test_info_returns_200(self, client):
         resp = client.get("/")
@@ -87,6 +88,7 @@ class TestInfo:
 
 
 # -- /predict -----------------------------------------------------------------
+
 
 class TestPredict:
     def test_predict_returns_200(self, client):
@@ -126,6 +128,7 @@ class TestPredict:
 
 
 # -- /predict/batch -----------------------------------------------------------
+
 
 class TestPredictBatch:
     def test_batch_returns_200(self, client):

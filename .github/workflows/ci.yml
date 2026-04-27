@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dev dependencies
+        run: uv sync --dev
+
+      # Lint only Parte 6 modules (scripts/tests from Parts 2-5 predate CI)
+      - name: ruff check
+        run: |
+          uv run ruff check \
+            src/credit_default/serving/ \
+            src/credit_default/monitoring/ \
+            tests/test_serving.py \
+            tests/test_api.py \
+            tests/test_drift.py
+
+      - name: black --check
+        run: |
+          uv run black --check \
+            src/credit_default/serving/ \
+            src/credit_default/monitoring/ \
+            tests/test_serving.py \
+            tests/test_api.py \
+            tests/test_drift.py
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install all dependencies
+        run: uv sync --dev
+
+      - name: Run pytest
+        run: uv run pytest -q --tb=short

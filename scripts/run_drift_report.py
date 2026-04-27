@@ -72,74 +72,82 @@ def _generate_markdown(
     table = "\n".join(rows)
 
     drifted_features = [f for f, e in drift_result.items() if e["drift_detected"]]
-    model_flag = "🚨 SIM" if model_result["drift_detected"] else "✅ NÃO"
+    model_flag = "SIM" if model_result["drift_detected"] else "NAO"
+    ref_auc = f"{model_result['reference_roc_auc']:.4f}"
+    cur_auc = f"{model_result['current_roc_auc']:.4f}"
+    delta_auc = f"{model_result['delta_roc_auc']:+.4f}"
+    model_row = f"| roc_auc | {ref_auc} | {cur_auc} | {delta_auc} | {model_flag} |"
+    n_drifted = len(drifted_features)
+    n_total = len(drift_result)
+    affected = ", ".join(drifted_features) if drifted_features else "Nenhuma"
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    return f"""# Relatório de Drift — Parte 6
+    return f"""# Relatorio de Drift - Parte 6
 
-Gerado em: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+Gerado em: {generated_at}
 
-## Configuração da Simulação
+## Configuracao da Simulacao
 
-| Parâmetro | Valor |
+| Parametro | Valor |
 |-----------|-------|
-| Referência histórica | train + val ({reference_n:,} registros) |
+| Referencia historica | train + val ({reference_n:,} registros) |
 | Dados correntes simulados | test set ({current_n:,} registros) |
-| Nível de significância (α) | 0.05 |
-| Teste features contínuas | Kolmogorov-Smirnov (KS) |
-| Teste features categóricas | chi-quadrado (χ²) |
+| Nivel de significancia (alpha) | 0.05 |
+| Teste features continuas | Kolmogorov-Smirnov (KS) |
+| Teste features categoricas | chi-quadrado (chi2) |
 
 ## Drift de Dados por Feature
 
-| Feature | Teste | Estatística | p-value | Drift? |
+| Feature | Teste | Estatistica | p-value | Drift? |
 |---------|-------|-------------|---------|--------|
 {table}
 
 ## Resumo de Drift de Dados
 
-- **Features com drift detectado:** {len(drifted_features)} / {len(drift_result)}
-- **Features afetadas:** {', '.join(drifted_features) if drifted_features else 'Nenhuma'}
+- **Features com drift detectado:** {n_drifted} / {n_total}
+- **Features afetadas:** {affected}
 
 ## Drift de Modelo (Performance)
 
-| Métrica | Baseline (Parte 5) | Corrente (simulado) | Delta | Drift? |
+| Metrica | Baseline (Parte 5) | Corrente (simulado) | Delta | Drift? |
 |---------|-------------------|---------------------|-------|--------|
-| roc_auc | {model_result['reference_roc_auc']:.4f} | {model_result['current_roc_auc']:.4f} | {model_result['delta_roc_auc']:+.4f} | {model_flag} |
+{model_row}
 
-> **Nota:** As métricas "correntes" nesta simulação são as mesmas do test set
+> **Nota:** As metricas "correntes" nesta simulacao sao as mesmas do test set
 > da Parte 5 (o modelo foi avaliado exatamente uma vez sobre esses dados).
-> Em produção real, as métricas correntes seriam recomputadas periodicamente
+> Em producao real, as metricas correntes seriam recomputadas periodicamente
 > com dados rotulados acumulados.
 
 ## Plano de Retreinamento
 
-### Critérios de Gatilho
+### Criterios de Gatilho
 
-| Critério | Limiar | Ação |
+| Criterio | Limiar | Acao |
 |----------|--------|------|
-| Drift em features críticas (PAY_0, LIMIT_BAL) | p < 0.05 | Avaliar imediatamente |
-| Drift em ≥ 5 features simultâneas | qualquer | Iniciar retreinamento |
-| Queda de roc_auc | > 5 pp vs baseline | Retreinamento obrigatório |
+| Drift em features criticas (PAY_0, LIMIT_BAL) | p < 0.05 | Avaliar imediatamente |
+| Drift em 5+ features simultaneas | qualquer | Iniciar retreinamento |
+| Queda de roc_auc | > 5 pp vs baseline | Retreinamento obrigatorio |
 | Queda de roc_auc | > 3 pp vs baseline | Alerta + monitoramento intensivo |
-| Latência de inferência | > 500 ms (P95) | Investigar degradação |
+| Latencia de inferencia | > 500 ms (P95) | Investigar degradacao |
 
-### Frequência Mínima Sugerida
+### Frequencia Minima Sugerida
 
 - **Drift de dados:** verificar semanalmente (ou a cada 10k novos registros)
-- **Avaliação de modelo:** mensal (requer dados rotulados acumulados)
+- **Avaliacao de modelo:** mensal (requer dados rotulados acumulados)
 - **Retreinamento completo:** trimestral ou quando gatilho acionado
 
 ### Estimativa de Custo por Retreinamento
 
 | Etapa | Tempo estimado | Custo computacional |
 |-------|---------------|---------------------|
-| Preparação de dados | ~5 min | Baixo |
-| GridSearch (25 combinações) | ~15-30 min | Médio (CPU local) |
-| Avaliação no test set | ~1 min | Baixo |
-| Deploy da nova versão | ~5 min | Baixo |
+| Preparacao de dados | ~5 min | Baixo |
+| GridSearch (25 combinacoes) | ~15-30 min | Medio (CPU local) |
+| Avaliacao no test set | ~1 min | Baixo |
+| Deploy da nova versao | ~5 min | Baixo |
 | **Total** | **~25-40 min** | **Baixo (sem GPU)** |
 
-> O custo é aceitável para um sistema de cartão de crédito onde erros
-> de classificação têm impacto financeiro direto.
+> O custo e aceitavel para um sistema de cartao de credito onde erros
+> de classificacao tem impacto financeiro direto.
 """
 
 

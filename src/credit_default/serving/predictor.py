@@ -29,18 +29,35 @@ _DEFAULT_MODEL_URI = "models:/m-4de1a2c47e7d40d9a679a40ba79c9c65"
 
 # Tracking URI: file:///abs/path/to/mlruns (POSIX-safe, works on Windows and Docker)
 # parents[3]: src/credit_default/serving/predictor.py -> repo root
-_DEFAULT_TRACKING_URI: str = (
-    Path(__file__).resolve().parents[3] / "mlruns"
-).as_uri()
+_DEFAULT_TRACKING_URI: str = (Path(__file__).resolve().parents[3] / "mlruns").as_uri()
 
 MODEL_URI: str = os.environ.get("MODEL_URI", _DEFAULT_MODEL_URI)
 TRACKING_URI: str = os.environ.get("MLFLOW_TRACKING_URI", _DEFAULT_TRACKING_URI)
 
 FEATURE_COLUMNS: List[str] = [
-    "LIMIT_BAL", "SEX", "EDUCATION", "MARRIAGE", "AGE",
-    "PAY_0", "PAY_2", "PAY_3", "PAY_4", "PAY_5", "PAY_6",
-    "BILL_AMT1", "BILL_AMT2", "BILL_AMT3", "BILL_AMT4", "BILL_AMT5", "BILL_AMT6",
-    "PAY_AMT1", "PAY_AMT2", "PAY_AMT3", "PAY_AMT4", "PAY_AMT5", "PAY_AMT6",
+    "LIMIT_BAL",
+    "SEX",
+    "EDUCATION",
+    "MARRIAGE",
+    "AGE",
+    "PAY_0",
+    "PAY_2",
+    "PAY_3",
+    "PAY_4",
+    "PAY_5",
+    "PAY_6",
+    "BILL_AMT1",
+    "BILL_AMT2",
+    "BILL_AMT3",
+    "BILL_AMT4",
+    "BILL_AMT5",
+    "BILL_AMT6",
+    "PAY_AMT1",
+    "PAY_AMT2",
+    "PAY_AMT3",
+    "PAY_AMT4",
+    "PAY_AMT5",
+    "PAY_AMT6",
 ]
 
 
