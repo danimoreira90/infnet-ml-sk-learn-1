@@ -1,7 +1,11 @@
 """Predictor: encapsulates MLflow model loading and inference.
 
-MODEL_PATH is the single source of truth for the model artifact location.
-It can be overridden via the MODEL_PATH environment variable for Docker.
+MODEL_URI is the single source of truth for the model artifact location.
+TRACKING_URI points to the local mlruns/ directory (or override via env var).
+
+Both can be overridden via environment variables for Docker:
+  MODEL_URI            -> defaults to "models:/m-4de1a2c47e7d40d9a679a40ba79c9c65"
+  MLFLOW_TRACKING_URI  -> defaults to file:///abs/path/to/mlruns
 
 Integrity controls:
 - Lazy loading: model is loaded on first predict call (or explicit load()).
@@ -15,20 +19,22 @@ import os
 from pathlib import Path
 from typing import List, Optional
 
+import mlflow
+import mlflow.sklearn
 import numpy as np
 import pandas as pd
 
-# Default path relative to project root (works locally and in Docker after COPY)
-_DEFAULT_MODEL_PATH = str(
-    Path(__file__).resolve().parents[4]
-    / "mlruns"
-    / "236665223173386020"
-    / "models"
-    / "m-4de1a2c47e7d40d9a679a40ba79c9c65"
-    / "artifacts"
-)
+# Canonical model URI (registered in the local model registry)
+_DEFAULT_MODEL_URI = "models:/m-4de1a2c47e7d40d9a679a40ba79c9c65"
 
-MODEL_PATH: str = os.environ.get("MODEL_PATH", _DEFAULT_MODEL_PATH)
+# Tracking URI: file:///abs/path/to/mlruns (POSIX-safe, works on Windows and Docker)
+# parents[3]: src/credit_default/serving/predictor.py -> repo root
+_DEFAULT_TRACKING_URI: str = (
+    Path(__file__).resolve().parents[3] / "mlruns"
+).as_uri()
+
+MODEL_URI: str = os.environ.get("MODEL_URI", _DEFAULT_MODEL_URI)
+TRACKING_URI: str = os.environ.get("MLFLOW_TRACKING_URI", _DEFAULT_TRACKING_URI)
 
 FEATURE_COLUMNS: List[str] = [
     "LIMIT_BAL", "SEX", "EDUCATION", "MARRIAGE", "AGE",
@@ -41,19 +47,24 @@ FEATURE_COLUMNS: List[str] = [
 class Predictor:
     """Wraps the GradientBoosting model with lazy loading and fail-fast semantics."""
 
-    def __init__(self, model_path: Optional[str] = None) -> None:
-        self._model_path = model_path or MODEL_PATH
+    def __init__(
+        self,
+        model_uri: Optional[str] = None,
+        tracking_uri: Optional[str] = None,
+    ) -> None:
+        self._model_uri = model_uri or MODEL_URI
+        self._tracking_uri = tracking_uri or TRACKING_URI
         self._model = None
 
     def load(self) -> None:
-        """Load the model from disk. Raises RuntimeError on failure."""
-        import mlflow.sklearn
-
+        """Set tracking URI and load the model. Raises RuntimeError on failure."""
         try:
-            self._model = mlflow.sklearn.load_model(self._model_path)
+            mlflow.set_tracking_uri(self._tracking_uri)
+            self._model = mlflow.sklearn.load_model(self._model_uri)
         except Exception as exc:
             raise RuntimeError(
-                f"Failed to load model from '{self._model_path}': {exc}"
+                f"Failed to load model '{self._model_uri}' "
+                f"(tracking_uri='{self._tracking_uri}'): {exc}"
             ) from exc
 
     @property

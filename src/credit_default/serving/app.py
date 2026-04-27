@@ -23,7 +23,7 @@ from typing import AsyncIterator
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from credit_default.serving.predictor import MODEL_PATH, Predictor
+from credit_default.serving.predictor import MODEL_URI, Predictor
 from credit_default.serving.schemas import (
     BatchPredictRequest,
     BatchPredictResponse,
@@ -39,7 +39,7 @@ predictor = Predictor()
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Load model at startup; fail-fast if unavailable."""
-    logger.info("Loading model from: %s", MODEL_PATH)
+    logger.info("Loading model from: %s", MODEL_URI)
     predictor.load()  # raises RuntimeError → server won't start if model missing
     logger.info("Model loaded successfully.")
     yield
@@ -68,14 +68,14 @@ def _check_ready() -> None:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "model_uri": MODEL_PATH}
+    return {"status": "ok", "model_uri": MODEL_URI}
 
 
 @app.get("/")
 def info() -> dict:
     return {
         "model_name": "GradientBoosting (baseline)",
-        "model_path": MODEL_PATH,
+        "model_uri": MODEL_URI,
         "feature_count": 23,
         "run_id": "6be94912218a4c51bd8297ac77719b7f",
         "test_metrics": {
