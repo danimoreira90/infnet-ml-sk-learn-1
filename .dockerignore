@@ -1,0 +1,51 @@
+# Controle de versao
+.git/
+.gitignore
+
+# Dados brutos e resultados (grandes demais / irrelevantes para inferencia)
+data/
+models/
+results/
+reports/
+notebooks/
+*.ipynb
+
+# Runs MLflow: exclui tudo exceto a pasta do modelo final (~194KB)
+mlruns/*
+!mlruns/236665223173386020
+mlruns/236665223173386020/*
+!mlruns/236665223173386020/models
+mlruns/236665223173386020/models/*
+!mlruns/236665223173386020/models/m-4de1a2c47e7d40d9a679a40ba79c9c65
+
+# Ambientes virtuais e cache
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Scripts de treinamento (nao necessarios em runtime)
+scripts/
+
+# Documentacao
+docs/
+PLAN*.md
+QUICK_START.md
+PROJECT_GUIDE.md
+README.md
+
+# Artifacts gerados localmente
+artifacts/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/
+
+# Configs de desenvolvimento
+configs/

@@ -1,0 +1,20 @@
+services:
+  infnet-ml-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: infnet-ml-api:latest
+    container_name: infnet-ml-api
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_URI=models:/m-4de1a2c47e7d40d9a679a40ba79c9c65
+      - MLFLOW_TRACKING_URI=file:///app/mlruns
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
