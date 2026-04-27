@@ -57,9 +57,16 @@ class Predictor:
         self._model = None
 
     def load(self) -> None:
-        """Set tracking URI and load the model. Raises RuntimeError on failure."""
+        """Load the model. Raises RuntimeError on failure.
+
+        When MODEL_URI starts with "models:" (registry URI), sets the tracking
+        URI first so MLflow can resolve the registry. When MODEL_URI is a
+        filesystem path (e.g., in Docker), skips set_tracking_uri — the path
+        is already absolute POSIX and needs no registry resolution.
+        """
         try:
-            mlflow.set_tracking_uri(self._tracking_uri)
+            if self._model_uri.startswith("models:"):
+                mlflow.set_tracking_uri(self._tracking_uri)
             self._model = mlflow.sklearn.load_model(self._model_uri)
         except Exception as exc:
             raise RuntimeError(

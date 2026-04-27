@@ -8,8 +8,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - MODEL_URI=models:/m-4de1a2c47e7d40d9a679a40ba79c9c65
-      - MLFLOW_TRACKING_URI=file:///app/mlruns
+      - MODEL_URI=/app/mlruns/236665223173386020/models/m-4de1a2c47e7d40d9a679a40ba79c9c65/artifacts
     healthcheck:
       test: ["CMD", "python", "-c",
              "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]

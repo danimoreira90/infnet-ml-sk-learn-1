@@ -56,6 +56,17 @@ class TestPredictorLazyLoad:
             p.load()
             mock_load.assert_called_once_with("models:/fake")
 
+    def test_load_with_filesystem_path_skips_set_tracking_uri(self):
+        """Docker path: MODEL_URI is a POSIX path, not a registry URI."""
+        p = Predictor(
+            model_uri="/app/mlruns/236.../models/m-4de.../artifacts",
+            tracking_uri="file:///app/mlruns",
+        )
+        with patch(_PATCH_SET_TRACKING) as mock_set, \
+             patch(_PATCH_LOAD_MODEL, return_value=MagicMock()):
+            p.load()
+            mock_set.assert_not_called()
+
 
 class TestPredictorFailFast:
     def test_load_failure_raises_runtime_error(self):
