@@ -50,3 +50,8 @@ testpaths = ["tests"]
 
 [tool.uv]
 python-preference = "managed"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+]
