@@ -27,8 +27,17 @@ venv/
 Thumbs.db
 
 # Artifacts de execução (gerados localmente, nunca versionados)
-artifacts/
-mlruns/
+/artifacts/
+
+# mlruns/ ignorado por padrão (comportamento histórico Partes 2-5)
+# Exceção: artefatos do modelo final da Parte 5 (necessário para Docker e CI)
+!mlruns/
+mlruns/*
+!mlruns/236665223173386020/
+mlruns/236665223173386020/*
+!mlruns/236665223173386020/models/
+mlruns/236665223173386020/models/*
+!mlruns/236665223173386020/models/m-4de1a2c47e7d40d9a679a40ba79c9c65/
 
 # Figuras geradas em runtime (parte_2); .gitkeep permanece versionado
 reports/figures/parte_2/*.png

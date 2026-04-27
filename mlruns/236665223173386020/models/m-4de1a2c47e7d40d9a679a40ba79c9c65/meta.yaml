@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/user/Desktop/infnet-sk-learn-models-1/mlruns/236665223173386020/models/m-4de1a2c47e7d40d9a679a40ba79c9c65/artifacts
+creation_timestamp: 1776099385050
+experiment_id: '236665223173386020'
+last_updated_timestamp: 1776099388349
+model_id: m-4de1a2c47e7d40d9a679a40ba79c9c65
+model_type: null
+name: model
+source_run_id: 6be94912218a4c51bd8297ac77719b7f
+status: 2
+status_message: null
