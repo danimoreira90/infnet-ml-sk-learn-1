@@ -11,7 +11,7 @@
 | 2 | 1min | Estrutura do repositório + arquitetura |
 | 3 | 1min | MLflow UI: 25 runs + final_eval |
 | 4 | 1min | Seleção final + critério escrito antes |
-| 5 | 1min | Inferência: uvicorn + curl /predict |
+| 5 | 1min | Inferência: uvicorn + PowerShell /predict |
 | 6 | 45s | Drift report executado |
 | 7 | 45s | GitHub Actions |
 | 8 | 30s | Encerramento |
@@ -40,19 +40,19 @@
 **Tela:** Terminal no diretório raiz.
 
 **Comandos a digitar:**
-```bash
+```powershell
 # Mostrar estrutura de alto nível
 ls
 
 # Mostrar pacote principal
 ls src/credit_default/
 
-# Mostrar que há 98+ testes passando
-uv run pytest -q --tb=no 2>&1 | tail -3
+# Mostrar que há 117 testes passando
+uv run pytest -q --tb=no 2>&1 | Select-Object -Last 3
 ```
 
 **Narração:**
-> "O repositório segue uma estrutura de pacote Python com submodulos por
+> "O repositório segue uma estrutura de pacote Python com submódulos por
 > responsabilidade: data, features, models, tracking, audit, serving e monitoring.
 > A Parte 6 adicionou o módulo serving, com o FastAPI, e o módulo monitoring,
 > com detecção de drift estatístico."
@@ -61,7 +61,7 @@ uv run pytest -q --tb=no 2>&1 | tail -3
 - `src/credit_default/serving/` → API de produção
 - `src/credit_default/monitoring/` → detecção de drift
 - `scripts/` → scripts executáveis de cada fase
-- 98 testes cobrindo todo o pipeline
+- 117 testes cobrindo todo o pipeline
 
 ---
 
@@ -70,7 +70,7 @@ uv run pytest -q --tb=no 2>&1 | tail -3
 **Tela:** Browser com MLflow UI.
 
 **Comandos a digitar (antes de abrir o browser):**
-```bash
+```powershell
 uv run mlflow ui --port 5000
 # Abrir: http://localhost:5000
 ```
@@ -92,15 +92,15 @@ uv run mlflow ui --port 5000
 
 ## Bloco 4 — Seleção Final + Critério Escrito Antes (1min)
 
-**Tela:** Editor de texto ou terminal com o arquivo.
+**Tela:** Terminal PowerShell.
 
 **Comandos a digitar:**
-```bash
+```powershell
 # Mostrar o critério escrito ANTES da execução
-cat docs/final_selection_criteria.md
+Get-Content docs/final_selection_criteria.md
 
 # Mostrar o relatório final com o vencedor identificado
-cat reports/parte_5/final_selection.md | head -60
+Get-Content reports/parte_5/final_selection.md | Select-Object -First 60
 ```
 
 **Narração:**
@@ -117,35 +117,50 @@ cat reports/parte_5/final_selection.md | head -60
 
 ---
 
-## Bloco 5 — Inferência: uvicorn + curl /predict (1min)
+## Bloco 5 — Inferência: uvicorn + PowerShell /predict (1min)
 
-**Tela:** Dois terminais lado a lado (split screen).
+**Tela:** Dois terminais PowerShell lado a lado (split screen).
 
-**Terminal 1 — subir o servidor:**
-```bash
-uv run uvicorn src.credit_default.serving.app:app --port 8000
+**Opção de servidor:** Para o vídeo, recomenda-se **uvicorn local** (startup visível
+ao vivo, ~3s). Alternativa: `docker compose up -d` (container já pronto, sem log
+de startup na tela — útil se o modelo local não estiver configurado).
+
+**Terminal 1 — subir o servidor (uvicorn local):**
+```powershell
+uv run uvicorn credit_default.serving.app:app --port 8000
 # Aguardar: "Application startup complete."
 ```
 
 **Terminal 2 — testar endpoints:**
-```bash
+```powershell
 # Health check
-curl -s http://localhost:8000/health | python -m json.tool
+Invoke-RestMethod -Uri http://localhost:8000/health | ConvertTo-Json
 
 # Informações do modelo
-curl -s http://localhost:8000/ | python -m json.tool
+Invoke-RestMethod -Uri http://localhost:8000/ | ConvertTo-Json
 
-# Predição: cliente com LIMIT_BAL=30k, sem atrasos (deve retornar 0)
-curl -s -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{"record":{"LIMIT_BAL":30000,"SEX":2,"EDUCATION":1,"MARRIAGE":1,"AGE":35,"PAY_0":-1,"PAY_2":-1,"PAY_3":-1,"PAY_4":-2,"PAY_5":-2,"PAY_6":-2,"BILL_AMT1":390,"BILL_AMT2":780,"BILL_AMT3":0,"BILL_AMT4":0,"BILL_AMT5":0,"BILL_AMT6":0,"PAY_AMT1":780,"PAY_AMT2":0,"PAY_AMT3":0,"PAY_AMT4":0,"PAY_AMT5":0,"PAY_AMT6":0}}' \
-  | python -m json.tool
+# Predição: cliente com LIMIT_BAL=30k, sem atrasos (deve retornar prediction=0)
+$body = @{
+  record = @{
+    LIMIT_BAL=30000; SEX=2; EDUCATION=1; MARRIAGE=1; AGE=35
+    PAY_0=-1; PAY_2=-1; PAY_3=-1; PAY_4=-2; PAY_5=-2; PAY_6=-2
+    BILL_AMT1=390; BILL_AMT2=780; BILL_AMT3=0; BILL_AMT4=0; BILL_AMT5=0; BILL_AMT6=0
+    PAY_AMT1=780; PAY_AMT2=0; PAY_AMT3=0; PAY_AMT4=0; PAY_AMT5=0; PAY_AMT6=0
+  }
+} | ConvertTo-Json -Compress
 
-# Payload inválido → 422
-curl -s -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{"record":{"LIMIT_BAL":"invalido"}}' \
-  | python -m json.tool
+Invoke-RestMethod -Uri http://localhost:8000/predict -Method POST `
+  -ContentType "application/json" -Body $body | ConvertTo-Json
+
+# Payload inválido → deve retornar erro 422
+try {
+  Invoke-RestMethod -Uri http://localhost:8000/predict -Method POST `
+    -ContentType "application/json" `
+    -Body '{"record":{"LIMIT_BAL":"errado"}}'
+} catch {
+  Write-Host "Status:" $_.Exception.Response.StatusCode.value__
+  $_.ErrorDetails.Message
+}
 ```
 
 **Narração:**
@@ -163,19 +178,19 @@ curl -s -X POST http://localhost:8000/predict \
 
 ## Bloco 6 — Drift Report (45s)
 
-**Tela:** Terminal.
+**Tela:** Terminal PowerShell.
 
 **Comandos a digitar:**
-```bash
+```powershell
 uv run python scripts/run_drift_report.py
 
 # Mostrar o relatório gerado
-cat reports/parte_6/drift_report.md
+Get-Content reports/parte_6/drift_report.md
 ```
 
 **Narração:**
 > "O módulo de monitoring usa Kolmogorov-Smirnov para features contínuas e
-> chi-quadrado para categóricas. Nesta simulação, train+val são os dados
+> qui-quadrado para categóricas. Nesta simulação, train+val são os dados
 > históricos e o test set representa dados novos de produção. Como os splits
 > vêm do mesmo dataset estratificado, nenhum drift é detectado — o que
 > confirma a homogeneidade dos dados. Em produção real, aplicaríamos o mesmo
@@ -194,22 +209,25 @@ cat reports/parte_6/drift_report.md
 
 **O que mostrar:**
 1. Aba "Actions" do repositório
-2. Workflow `CI` → último run verde
+2. Workflow `CI` → último run verde (confirmar que é o commit mais recente gravado)
 3. Expandir job `lint` → mostrar ruff + black passando
-4. Expandir job `test` → mostrar 98 testes passando
+4. Expandir job `test` → mostrar 117 testes passando
 5. Mostrar o arquivo `.github/workflows/ci.yml`
 
 **Comandos para mostrar o arquivo localmente:**
-```bash
-cat .github/workflows/ci.yml
+```powershell
+Get-Content .github/workflows/ci.yml
 ```
 
 **Narração:**
 > "A CI roda automaticamente em push e pull request para main. O job de lint
-> valida ruff e black. O job de test executa os 98 testes — incluindo os testes
+> valida ruff e black. O job de test executa os 117 testes — incluindo os testes
 > do módulo serving com mocks, que não precisam do mlruns local. O modelo final
 > foi versionado no git via exceção no .gitignore, tornando o Docker build e
 > o CI completamente reproduzíveis."
+
+**Nota:** Antes de gravar, confirmar que o último commit da branch `main` já
+passou no CI — o check verde deve aparecer ao lado do commit no GitHub.
 
 ---
 
@@ -231,22 +249,23 @@ cat .github/workflows/ci.yml
 | Problema | Como Evitar |
 |----------|-------------|
 | Servidor não sobe (model not found) | Verificar `MODEL_URI` e `MLFLOW_TRACKING_URI`; confirmar que `mlruns/236.../models/m-4de.../` existe |
-| `curl` não encontrado no Windows | Usar PowerShell: `Invoke-RestMethod -Uri http://localhost:8000/health` ou instalar curl do Windows 10+ |
+| `Invoke-RestMethod` retorna objeto sem formatação | Encadear `\| ConvertTo-Json` para visualização legível |
 | MLflow UI não abre | `uv run mlflow ui --backend-store-uri ./mlruns --port 5000` |
 | pytest muito lento no vídeo | Usar `uv run pytest -q --tb=no -x` para saída rápida |
 | Terminal com encoding errado (caracteres especiais) | `$env:PYTHONIOENCODING="utf-8"` antes de rodar scripts |
-| Docker build muito lento ao vivo | Mostrar um build já cacheado ou pular para o `docker compose up` direto |
-| GitHub Actions ainda rodando | Fazer push antes de gravar e aguardar o green check |
+| Docker build muito lento ao vivo | Mostrar um build já cacheado ou usar `docker compose up -d` direto |
+| GitHub Actions ainda rodando ao gravar | Fazer push antes de gravar e aguardar o green check no commit |
+| `ConvertTo-Json -Compress` quebrando no body do POST | Verificar se `$body` foi atribuído antes do `Invoke-RestMethod` |
 
 ---
 
 ## Checklist Pré-Gravação
 
-- [ ] `uv run pytest -q` → 98+ testes passando
-- [ ] `uv run uvicorn src.credit_default.serving.app:app --port 8000` → sobe sem erro
-- [ ] `curl localhost:8000/health` → responde
+- [ ] `uv run pytest -q` → 117 testes passando
+- [ ] `uv run uvicorn credit_default.serving.app:app --port 8000` → sobe sem erro
+- [ ] `Invoke-RestMethod -Uri http://localhost:8000/health` → responde com status ok
 - [ ] `uv run mlflow ui --port 5000` → UI carrega com 25+ runs
 - [ ] `uv run python scripts/run_drift_report.py` → termina sem erro
-- [ ] GitHub Actions → último run verde no repositório remoto
+- [ ] GitHub Actions → verde no commit mais recente antes de gravar
 - [ ] Arquivo `.github/workflows/ci.yml` existente
-- [ ] `docker compose up` → container responde (Pausa 2)
+- [ ] `docker compose up -d` → container responde em `http://localhost:8000/health`
