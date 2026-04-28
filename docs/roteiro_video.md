@@ -226,6 +226,12 @@ Get-Content .github/workflows/ci.yml
 > foi versionado no git via exceção no .gitignore, tornando o Docker build e
 > o CI completamente reproduzíveis."
 
+**Ponto de narrativa — CI vermelho histórico (transformar em demonstração):**
+> "Vê-se aqui que o primeiro run do CI mostrou erro: o ruff não estava
+> pinned nas dependências de dev. Esse foi exatamente o tipo de feedback
+> que justifica ter CI: o erro foi pego em segundos, corrigido no
+> commit seguinte, e o estado atual está verde."
+
 **Nota:** Antes de gravar, confirmar que o último commit da branch `main` já
 passou no CI — o check verde deve aparecer ao lado do commit no GitHub.
 
