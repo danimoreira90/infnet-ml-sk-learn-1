@@ -142,3 +142,49 @@ Este fato está registrado aqui e no log de execução do script. Nunca foi sile
 | baseline__dtree | 21 | 13 | roc_auc |
 
 **Regra:** params loggeados sao verificados por script (`uv run python -c "..."`) e por suite de testes — nunca apenas por documentacao. O DoD exige `ParamsCount >= 8` e `clf__keys >= 3` por run.
+
+---
+
+## Parte 6 — Controles de Integridade do Servico
+
+### MODEL_URI Imutavel
+
+`MODEL_URI = "models:/m-4de1a2c47e7d40d9a679a40ba79c9c65"` e uma constante em `src/credit_default/serving/predictor.py`. Qualquer mudanca de modelo exige commit explicito e revisao — nunca e alterada por env var em producao sem registro.
+
+### Fail-Fast no Startup
+
+`app.py` usa lifespan do FastAPI: `predictor.load()` e chamado antes de aceitar qualquer requisicao. Se o modelo nao carregar, `RuntimeError` e propagado e o servidor nao sobe. Nao ha fallback silencioso.
+
+### Sem Stub em /predict
+
+Se `predictor.is_ready` for `False` (improvavel apos lifespan, mas defensivo), `/predict` e `/predict/batch` retornam HTTP 503. Nunca retornam HTTP 200 com valor fixo.
+
+### Test Set Tocado Uma Unica Vez
+
+`evaluate_final.py` e o unico script que chama `load_splits(include_test=True)`. Verificacao:
+
+```bash
+grep -r "include_test=True" scripts/ src/ tests/
+# Deve retornar exatamente 1 linha: scripts/evaluate_final.py
+```
+
+### Sem MLflow Run Novo na Parte 6
+
+A Parte 6 nao cria runs de treinamento. O unico run novo e o `drift_report` gerado por `scripts/run_drift_report.py`, com `tags.stage = "drift_report"`. Verificacao:
+
+```bash
+grep -r "mlflow.sklearn.log_model" scripts/ src/
+# Deve retornar exatamente 1 linha: scripts/evaluate_final.py
+```
+
+### CI Independente de Filesystem Local
+
+Os testes de serving (`test_serving.py`, `test_api.py`) usam mocks — nenhum acessa `mlruns/` em disco. Os testes de drift (`test_drift.py`) usam dados sinteticos gerados em memoria. O GitHub Actions roda a suite completa sem artefatos de modelo.
+
+### Suite de Testes da Parte 6
+
+| Arquivo | N testes | Cobertura |
+|---------|----------|-----------|
+| `tests/test_serving.py` | 11 | Predictor: lazy load, fail-fast, inferencia |
+| `tests/test_api.py` | 15 | Endpoints: contratos HTTP, 422/503/500 |
+| `tests/test_drift.py` | 17 | Drift: KS, chi2, model_drift, edge cases |

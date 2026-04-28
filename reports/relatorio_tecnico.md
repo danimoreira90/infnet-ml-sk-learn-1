@@ -269,3 +269,78 @@ uv run python scripts/select_final_candidate.py
 # Apos aprovacao do vencedor:
 uv run python scripts/evaluate_final.py
 ```
+
+---
+
+## Parte 6 — Operacionalizacao e Simulacao de Producao
+
+### Objetivo
+
+Expor o modelo vencedor da Parte 5 como servico HTTP, conteineiriza-lo com Docker e implementar monitoramento continuo de drift, fechando o ciclo MLOps do projeto.
+
+### Arquitetura do Servico
+
+O modelo e servido por uma aplicacao FastAPI (`src/credit_default/serving/app.py`) com quatro endpoints:
+
+| Metodo | Path | Descricao |
+|--------|------|-----------|
+| GET | `/health` | Status do servico e `model_uri` |
+| GET | `/` | Info do modelo (nome, metricas, run_id) |
+| POST | `/predict` | Predicao unitaria (23 features int) |
+| POST | `/predict/batch` | Predicao em lote |
+
+A validacao de payload usa Pydantic v2 com `ConfigDict(strict=True)`: todos os 23 campos sao `int` obrigatorios (derivados da MLmodel signature `type: long`). Payload incompleto retorna HTTP 422 automatico.
+
+### Controles de Integridade
+
+| Controle | Implementacao |
+|----------|--------------|
+| `MODEL_URI` imutavel | Constante em `predictor.py`; mudanca requer commit explicito |
+| Fail-fast no startup | `lifespan()` chama `predictor.load()` — `RuntimeError` impede inicializacao |
+| Sem stub no `/predict` | Se predictor nao pronto, retorna 503 (nunca 200 com valor fixo) |
+| Test set tocado 1x | `evaluate_final.py` e o unico script com `include_test=True` |
+| CI valida testes | 117 testes no GitHub Actions em todo push/PR |
+
+### Dual-Mode MODEL_URI
+
+O predictor suporta dois modos sem mudanca de codigo:
+
+- **Host local**: `MODEL_URI = models:/m-4de1a2c47e7d40d9a679a40ba79c9c65` — resolve via MLflow registry com `set_tracking_uri` apontando para `mlruns/` local.
+- **Docker**: `MODEL_URI = /app/mlruns/.../artifacts` — path POSIX absoluto; o condicional `if self._model_uri.startswith("models:")` pula o `set_tracking_uri`, contornando o problema de paths Windows nos metadados do MLmodel.
+
+### Monitoramento de Drift
+
+Implementado em `src/credit_default/monitoring/drift.py`:
+
+- **Drift de dados**: KS test (14 features continuas) + chi2 (9 features categoricas), `alpha=0.05` parametrizavel.
+- **Drift de modelo**: flag se `delta_roc_auc < -0.05` (queda de 5 pp vs baseline).
+
+Gatilhos de retreinamento:
+
+| Situacao | Acao |
+|----------|------|
+| 0 features com drift | Monitoramento padrao |
+| 1-4 features com drift | Alertar equipe |
+| >= 5 features com drift | Iniciar retreinamento |
+| roc_auc cai > 5 pp | Retreinamento obrigatorio |
+
+### Metricas no Servico (Parte 5 — test set)
+
+| Metrica | Valor |
+|---------|-------|
+| roc_auc | 0.7682 |
+| f1_macro | 0.6876 |
+| accuracy | 0.8218 |
+
+### Reproducao
+
+```bash
+# Servico local
+uv run uvicorn src.credit_default.serving.app:app --port 8000
+
+# Docker
+docker compose up -d
+
+# Relatorio de drift
+uv run python scripts/run_drift_report.py
+```

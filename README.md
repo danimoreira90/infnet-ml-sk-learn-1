@@ -471,3 +471,74 @@ Select-String -Path scripts\*.py, src\**\*.py, tests\*.py -Pattern "include_test
 # Guard 1C: mlflow.sklearn.log_model em exatamente 1 arquivo
 Select-String -Path scripts\*.py, src\**\*.py -Pattern "mlflow.sklearn.log_model"
 ```
+
+---
+
+## Como rodar a Parte 6 — Operacionalizacao
+
+### Pre-requisitos
+
+- Parte 5 executada (`mlruns/` com modelo registrado em `models:/m-4de1a2c47e7d40d9a679a40ba79c9c65`)
+- `uv sync` para instalar dependencias (FastAPI, uvicorn, scipy incluidos)
+- Docker Desktop (opcional, para execucao conteinerizada)
+
+### Execucao local (uvicorn)
+
+```bash
+uv sync
+uv run uvicorn src.credit_default.serving.app:app --port 8000
+```
+
+O servidor inicializa em ~3s. Testar:
+
+```bash
+curl -s http://localhost:8000/health | python -m json.tool
+# {"status": "ok", "model_uri": "models:/m-4de1a2c47e7d40d9a679a40ba79c9c65"}
+
+curl -s -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"record":{"LIMIT_BAL":30000,"SEX":2,"EDUCATION":1,"MARRIAGE":1,"AGE":35,
+       "PAY_0":-1,"PAY_2":-1,"PAY_3":-1,"PAY_4":-2,"PAY_5":-2,"PAY_6":-2,
+       "BILL_AMT1":390,"BILL_AMT2":780,"BILL_AMT3":0,"BILL_AMT4":0,
+       "BILL_AMT5":0,"BILL_AMT6":0,
+       "PAY_AMT1":780,"PAY_AMT2":0,"PAY_AMT3":0,"PAY_AMT4":0,
+       "PAY_AMT5":0,"PAY_AMT6":0}}' | python -m json.tool
+# {"prediction": 0, "probability_default": 0.2765, "probability_no_default": 0.7235}
+```
+
+### Execucao via Docker
+
+```bash
+# Build e subir
+docker compose up -d
+
+# Verificar
+docker compose ps
+curl -s http://localhost:8000/health | python -m json.tool
+
+# Logs
+docker compose logs --tail=20
+
+# Parar
+docker compose down
+```
+
+### Relatorio de drift
+
+```bash
+uv run python scripts/run_drift_report.py
+# Saida: reports/parte_6/drift_report.md
+# MLflow run com stage=drift_report logado automaticamente
+```
+
+### Testes da Parte 6
+
+```bash
+uv run pytest tests/test_serving.py tests/test_api.py tests/test_drift.py -v
+```
+
+### Suite completa
+
+```bash
+uv run pytest --tb=short -q
+```
