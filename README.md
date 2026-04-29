@@ -1,8 +1,14 @@
-# Credit Card Default Prediction - Machine Learning Project
+﻿# Credit Card Default Prediction - Machine Learning Project
+
+## Demonstração em Vídeo
+
+Demonstração completa do sistema (sem narração) disponível no [Release v1.0.0-demo](https://github.com/danimoreira90/infnet-ml-sk-learn-1/releases/tag/v1.0.0-demo).
+
+Cobre: estrutura do projeto, 117 testes passando, MLflow UI com 26 runs, critério de seleção do modelo final, API FastAPI com /health e /predict, Docker container, detecção de drift e CI verde no GitHub Actions.
 
 A comprehensive machine learning project implementing supervised learning models for credit card default prediction, with emphasis on model interpretability, systematic evaluation, and professional methodology.
 
-## 📋 Project Overview
+## ðŸ“‹ Project Overview
 
 This project demonstrates a complete machine learning workflow from problem definition through advanced model evaluation, using **only scikit-learn** and classical ML techniques. The focus is on understanding model behavior, limitations, and the relationship between technical choices and practical impact.
 
@@ -12,44 +18,44 @@ This project demonstrates a complete machine learning workflow from problem defi
 - **Dataset:** 30,000 credit card clients with 23 features
 - **Goal:** Predict default probability to support credit decisions
 
-## 🗂️ Project Structure
+## ðŸ—‚ï¸ Project Structure
 
 ```
 credit-card-ml-project/
-│
-├── data/
-│   ├── default_of_credit_card_clients.xls    # Raw dataset
-│   └── credit_card_cleaned.csv                 # Processed data
-│
-├── models/
-│   ├── perceptron_baseline.pkl
-│   ├── decision_tree_default.pkl
-│   ├── decision_tree_optimized.pkl
-│   ├── scaler.pkl
-│   └── final_model.pkl
-│
-├── results/
-│   ├── model_comparison.csv
-│   ├── cv_results.csv
-│   └── figures/
-│
-├── notebooks/
-│   ├── DEVELOPMENT NOTEBOOKS (Modular)
-│   ├── 01_eda_and_problem_definition.ipynb
-│   ├── 02_baseline_perceptron.ipynb
-│   ├── 03_decision_tree.ipynb
-│   ├── 04_cv_and_hyperparameter_tuning.ipynb
-│   ├── 05_advanced_models.ipynb
-│   ├── 06_final_comparison_and_report.ipynb
-│   │
-│   └── SUBMISSION NOTEBOOK (Comprehensive)
-│       └── complete_ml_project.ipynb
-│
-├── utils.py              # Helper functions
-└── README.md             # This file
+â”‚
+â”œâ”€â”€ data/
+â”‚   â”œâ”€â”€ default_of_credit_card_clients.xls    # Raw dataset
+â”‚   â””â”€â”€ credit_card_cleaned.csv                 # Processed data
+â”‚
+â”œâ”€â”€ models/
+â”‚   â”œâ”€â”€ perceptron_baseline.pkl
+â”‚   â”œâ”€â”€ decision_tree_default.pkl
+â”‚   â”œâ”€â”€ decision_tree_optimized.pkl
+â”‚   â”œâ”€â”€ scaler.pkl
+â”‚   â””â”€â”€ final_model.pkl
+â”‚
+â”œâ”€â”€ results/
+â”‚   â”œâ”€â”€ model_comparison.csv
+â”‚   â”œâ”€â”€ cv_results.csv
+â”‚   â””â”€â”€ figures/
+â”‚
+â”œâ”€â”€ notebooks/
+â”‚   â”œâ”€â”€ DEVELOPMENT NOTEBOOKS (Modular)
+â”‚   â”œâ”€â”€ 01_eda_and_problem_definition.ipynb
+â”‚   â”œâ”€â”€ 02_baseline_perceptron.ipynb
+â”‚   â”œâ”€â”€ 03_decision_tree.ipynb
+â”‚   â”œâ”€â”€ 04_cv_and_hyperparameter_tuning.ipynb
+â”‚   â”œâ”€â”€ 05_advanced_models.ipynb
+â”‚   â”œâ”€â”€ 06_final_comparison_and_report.ipynb
+â”‚   â”‚
+â”‚   â””â”€â”€ SUBMISSION NOTEBOOK (Comprehensive)
+â”‚       â””â”€â”€ complete_ml_project.ipynb
+â”‚
+â”œâ”€â”€ utils.py              # Helper functions
+â””â”€â”€ README.md             # This file
 ```
 
-## 📓 Notebook Descriptions
+## ðŸ““ Notebook Descriptions
 
 ### Development Phase (Modular Notebooks)
 
@@ -103,7 +109,7 @@ credit-card-ml-project/
 - Professional formatting and documentation
 - Ready for academic/professional submission
 
-## 🚀 Quick Start
+## ðŸš€ Quick Start
 
 ### Prerequisites
 ```bash
@@ -143,7 +149,7 @@ jupyter notebook 02_baseline_perceptron.ipynb
 jupyter notebook complete_ml_project.ipynb
 ```
 
-## 📊 Dataset Information
+## ðŸ“Š Dataset Information
 
 ### Source
 - **Origin:** UCI Machine Learning Repository
@@ -162,15 +168,15 @@ jupyter notebook complete_ml_project.ipynb
 3. **Bill Amounts (6):** Monthly bill statement amounts
 4. **Previous Payments (6):** Monthly payment amounts
 
-## 🎯 Project Objectives
+## ðŸŽ¯ Project Objectives
 
 ### Technical Goals
-1. ✅ Build baseline linear classifier (Perceptron)
-2. ✅ Implement non-linear model (Decision Tree)
-3. ✅ Apply cross-validation and hyperparameter tuning
-4. ✅ Train advanced model (SVM/Ensemble)
-5. ✅ Interpret models without external tools
-6. ✅ Compare models systematically
+1. âœ… Build baseline linear classifier (Perceptron)
+2. âœ… Implement non-linear model (Decision Tree)
+3. âœ… Apply cross-validation and hyperparameter tuning
+4. âœ… Train advanced model (SVM/Ensemble)
+5. âœ… Interpret models without external tools
+6. âœ… Compare models systematically
 
 ### Learning Outcomes
 - Understand linear vs. non-linear decision boundaries
@@ -179,7 +185,7 @@ jupyter notebook complete_ml_project.ipynb
 - Interpret model parameters without black boxes
 - Make informed model selection decisions
 
-## 📈 Key Results
+## ðŸ“ˆ Key Results
 
 ### Model Performance Comparison
 
@@ -199,7 +205,7 @@ jupyter notebook complete_ml_project.ipynb
 4. **Ensemble Boost:** Random Forests provide modest improvements
 5. **Interpretability Trade-off:** More complex models sacrifice explainability
 
-## 🛠️ Utilities (utils.py)
+## ðŸ› ï¸ Utilities (utils.py)
 
 ### Available Functions
 ```python
@@ -222,7 +228,7 @@ analyze_feature_importance(model, feature_names, top_n)
 create_results_dataframe(results_dict)
 ```
 
-## 📝 Project Requirements Compliance
+## ðŸ“ Project Requirements Compliance
 
 - [x] Real-world problem with business context
 - [x] Dataset with 10+ features (23 features)
@@ -237,7 +243,7 @@ create_results_dataframe(results_dict)
 - [x] Technical report with justifications
 - [x] Applied discussion of limitations
 
-## 🔍 Model Interpretation Approach
+## ðŸ” Model Interpretation Approach
 
 ### Without External Tools
 1. **Perceptron:** Weight vector analysis, bias interpretation, hyperplane geometry
@@ -251,7 +257,7 @@ create_results_dataframe(results_dict)
 - Discuss business feasibility
 - Identify potential biases
 
-## ⚠️ Limitations and Future Work
+## âš ï¸ Limitations and Future Work
 
 ### Current Limitations
 1. Static model (no retraining pipeline)
@@ -268,7 +274,7 @@ create_results_dataframe(results_dict)
 5. Implement model monitoring framework
 6. Add explainability for stakeholder communication
 
-## 📚 References
+## ðŸ“š References
 
 ### Dataset
 - Yeh, I. C., & Lien, C. H. (2009). "The comparisons of data mining techniques for the predictive accuracy of probability of default of credit card clients." *Expert Systems with Applications*, 36(2), 2473-2480.
@@ -278,13 +284,13 @@ create_results_dataframe(results_dict)
 - James, G., Witten, D., Hastie, T., & Tibshirani, R. (2013). *An Introduction to Statistical Learning*
 - Scikit-learn Documentation: https://scikit-learn.org/
 
-## 👤 Author
+## ðŸ‘¤ Author
 
 Daniel Moreira
 Infnet - Scikit-Learn and ML models  
 03/03/2026
 
-## 📄 License
+## ðŸ“„ License
 
 This project is for educational purposes.
 
@@ -294,17 +300,17 @@ This project is for educational purposes.
 
 ---
 
-## Como rodar a Parte 2 — Fundação de Dados
+## Como rodar a Parte 2 â€” FundaÃ§Ã£o de Dados
 
-### Pré-requisitos
+### PrÃ©-requisitos
 
 - **uv** (gestor de ambientes e pacotes Python)
   Verificar: `uv --version`
   Instalar: https://docs.astral.sh/uv/getting-started/installation/
-  Python 3.11 é gerenciado pelo uv: `uv python install 3.11`
-- Dataset bruto em `../data/default of credit card clients.xls` (relativo à raiz do repo)
+  Python 3.11 Ã© gerenciado pelo uv: `uv python install 3.11`
+- Dataset bruto em `../data/default of credit card clients.xls` (relativo Ã  raiz do repo)
 
-### Instalação
+### InstalaÃ§Ã£o
 
 ```bash
 uv venv --python 3.11
@@ -318,14 +324,14 @@ uv pip install -e ".[dev]"
 
 ```bash
 python scripts/build_clean_dataset.py
-# Saída: data/credit_card_cleaned.parquet
+# SaÃ­da: data/credit_card_cleaned.parquet
 ```
 
 ### Executar QA completo de dados
 
 ```bash
 python scripts/run_data_qa.py
-# Saídas: artifacts/, reports/figures/parte_2/
+# SaÃ­das: artifacts/, reports/figures/parte_2/
 ```
 
 ### Rodar testes
@@ -343,7 +349,7 @@ black --check src/ scripts/ tests/
 
 ---
 
-## Parte 3 — Modelagem e MLflow
+## Parte 3 â€” Modelagem e MLflow
 
 ### Pre-requisitos
 
@@ -379,15 +385,15 @@ uv run python -m pytest tests/test_preprocessing.py tests/test_pipeline.py tests
 
 ---
 
-## Parte 4 — Reducao de Dimensionalidade
+## Parte 4 â€” Reducao de Dimensionalidade
 
 Aplica PCA e LDA ao pipeline sklearn, retreina os 5 modelos e compara com o baseline da Parte 3.
 
-**Tecnicas:** PCA (nao-supervisionado) e LDA (supervisionado). t-SNE excluido — transductivo e com custo O(n²) inviavel para CV.
+**Tecnicas:** PCA (nao-supervisionado) e LDA (supervisionado). t-SNE excluido â€” transductivo e com custo O(nÂ²) inviavel para CV.
 
-**Configuracoes:** `pca_k10` (10 componentes, 84.2% EV), `pca_k15` (15 componentes, 94.3% EV), `lda_k1` (1 componente — forcado pela matematica binaria).
+**Configuracoes:** `pca_k10` (10 componentes, 84.2% EV), `pca_k15` (15 componentes, 94.3% EV), `lda_k1` (1 componente â€” forcado pela matematica binaria).
 
-**Total de runs:** 15 (5 modelos × 3 configs), adicionados ao experimento `infnet-ml-sistema` sem deletar os runs da Parte 3.
+**Total de runs:** 15 (5 modelos Ã— 3 configs), adicionados ao experimento `infnet-ml-sistema` sem deletar os runs da Parte 3.
 
 ### Execucao
 
@@ -404,7 +410,7 @@ uv run python scripts/generate_comparison_dimred.py
 | Arquivo | Descricao |
 |---------|-----------|
 | `reports/parte_4/comparison_dimred.md` | 20 runs (P3 + P4) ordenados por ROC-AUC |
-| `reports/parte_4/comparison_pca_vs_lda.md` | Pivot: modelo × config de dimred |
+| `reports/parte_4/comparison_pca_vs_lda.md` | Pivot: modelo Ã— config de dimred |
 
 ### Testes da Parte 4
 
@@ -420,28 +426,28 @@ uv run pytest --tb=short -q
 
 ---
 
-## Como rodar a Parte 5 — Selecao Final do Modelo
+## Como rodar a Parte 5 â€” Selecao Final do Modelo
 
 ### Pre-requisitos
 
 - Parte 3 e Parte 4 executadas (25 runs no experimento `infnet-ml-sistema`)
 - `docs/final_selection_criteria.md` presente e imutavel
 
-### Passo 1 — Auditoria de integridade (3 runs aleatorios P3/P4)
+### Passo 1 â€” Auditoria de integridade (3 runs aleatorios P3/P4)
 
 ```bash
 uv run python scripts/audit_sample.py
 # Esperado: "[AUDIT SAMPLE] 3/3 runs auditados OK"
 ```
 
-### Passo 2 — Tabela consolidada dos 25 runs
+### Passo 2 â€” Tabela consolidada dos 25 runs
 
 ```bash
 uv run python scripts/generate_consolidated_results.py
 # Gera: reports/parte_5/consolidated_results.md
 ```
 
-### Passo 3 — Selecionar candidato final (nao toca test set)
+### Passo 3 â€” Selecionar candidato final (nao toca test set)
 
 ```bash
 uv run python scripts/select_final_candidate.py
@@ -449,7 +455,7 @@ uv run python scripts/select_final_candidate.py
 # Mostra vencedor e step decisivo
 ```
 
-### Passo 4 — Avaliar no test set (UMA UNICA VEZ — apos aprovacao humana)
+### Passo 4 â€” Avaliar no test set (UMA UNICA VEZ â€” apos aprovacao humana)
 
 ```bash
 uv run python scripts/evaluate_final.py
@@ -473,7 +479,7 @@ Select-String -Path scripts\*.py, src\**\*.py -Pattern "mlflow.sklearn.log_model
 
 ---
 
-## Como rodar a Parte 6 — Operacionalizacao
+## Como rodar a Parte 6 â€” Operacionalizacao
 
 ### Pre-requisitos
 
